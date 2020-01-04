@@ -1,0 +1,10 @@
+import {createAction} from "@reduxjs/toolkit"
+
+export const addCourse = createAction("courses/add");
+export const toggleCourseInclude = createAction("courses/toggleInclude");
+export const toggleCoursePenalize = createAction("courses/togglePenalize");
+export const deleteCourse = createAction("courses/delete");
+export const addLoadingCourse = createAction("courses/addLoading");
+export const removeLoadingCourse = createAction("courses/removeLoading");
+export const addMessage = createAction("message/add");
+export const removeMessage = createAction("message/remove");
