@@ -17,22 +17,9 @@ export const courseReducer = createReducer([], {
     let course = action.payload;
     let prevNodeMap = new Map();
     for (let node of state) {
-      if (node.course_name === course.name) {
+      if (node.course === course.name) {
         prevNodeMap.set(node.node_id, node);
       }
-    }
-
-    let prevGroup = state
-      .filter(node => node.type === "course" && !node.loading)
-      .reduce((acc, curr) => Math.max(acc, curr.group), 0);
-
-    let prevCourseNode = state.find(
-      node => node.node_id === course.name && node.type === "course"
-    );
-    if (prevCourseNode && prevCourseNode.group) {
-      course.group = prevCourseNode.group;
-    } else {
-      course.group = prevGroup + 1;
     }
 
     let newCourseArray = transformCourse(course);
@@ -44,9 +31,16 @@ export const courseReducer = createReducer([], {
           ...newCourseArray[i]
         };
       }
+      if (newCourseArray[i].type === "course" && !newCourseArray[i].group) {
+        let prevGroup = state
+          .filter(node => node.type === "course" && !node.loading)
+          .reduce((acc, curr) => Math.max(acc, curr.group), 0);
+        newCourseArray[i].group = prevGroup + 1;
+      }
     }
+
     return state
-      .filter(node => node.course_name !== course.name)
+      .filter(node => node.course !== course.name)
       .concat(newCourseArray);
   },
   [toggleCourseInclude]: (state, action) => {
@@ -69,12 +63,12 @@ export const courseReducer = createReducer([], {
   },
   [deleteCourse]: (state, action) => {
     let course = action.payload;
-    return state.filter(node => node.course_name !== course || node.loading);
+    return state.filter(node => node.course !== course || node.loading);
   },
   [addLoadingCourse]: (state, action) => {
     let course = action.payload;
     let loadingNode = {
-      course_name: course,
+      course: course,
       type: "course",
       loading: true,
       node_id: course + ".loading",
@@ -96,11 +90,8 @@ export const messageReducer = createReducer([], {
     state.push(message);
   },
   [removeMessage]: (state, action) => {
-    let message = action.payload;
-    let index = state.indexOf(message);
-    if (index >= 0) {
-      state.splice(index, 1);
-    }
+    let key = action.payload;
+    return state.filter(msg => msg.key !== key);
   }
 });
 

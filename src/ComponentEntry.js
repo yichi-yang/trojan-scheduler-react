@@ -77,7 +77,7 @@ class ComponentEntry extends React.Component {
           onClick={() => this.toggle()}
         >
           <Icon name="dropdown" />
-          {this.props.component_name} ({this.props.numActive}/
+          {this.props.component} ({this.props.numActive}/
           {this.props.children.length})
         </Accordion.Title>
         <Accordion.Content active={this.state.active}>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Accordion, Icon, Button, Label, Loader } from "semantic-ui-react";
-import ComponentEntry from "./ComponentEntry";
+import PartEntry from "./PartEntry";
 import { connect } from "react-redux";
 import { deleteCourse } from "./actions";
 
@@ -15,9 +15,9 @@ class CourseEntry extends React.Component {
   }
 
   render() {
-    let componentsEntries = [];
-    for (let component of this.props.children) {
-      componentsEntries.push(<ComponentEntry {...component}></ComponentEntry>);
+    let parts = [];
+    for (let part of this.props.children) {
+      parts.push(<PartEntry {...part}></PartEntry>);
     }
     const colors = [
       "red",
@@ -46,7 +46,7 @@ class CourseEntry extends React.Component {
             color={colors[(this.props.group - 1) % colors.length]}
             horizontal
           >
-            {this.props.course_name}
+            {this.props.course}
             <Label.Detail>
               {isFinal ? (
                 "group " + this.props.group
@@ -70,14 +70,17 @@ class CourseEntry extends React.Component {
 
           {isFinal && (
             <Button.Group size="mini" floated="right" compact>
-              <Button>Exclude</Button>
+              <Button icon labelPosition="left">
+                <Icon name="eye slash"/>
+                Exclude
+              </Button>
               <Button>All</Button>
               <Button
                 color="red"
                 course_name={this.props.course_name}
                 onClick={(e, props) => {
                   e.stopPropagation();
-                  this.props.dispatch(deleteCourse(props.course_name));
+                  this.props.delete(this.props.course);
                 }}
               >
                 x
@@ -87,7 +90,7 @@ class CourseEntry extends React.Component {
         </Accordion.Title>
         {isFinal && (
           <Accordion.Content active={this.state.active}>
-            <Accordion styled>{componentsEntries}</Accordion>
+            {parts}
           </Accordion.Content>
         )}
       </>
@@ -95,12 +98,15 @@ class CourseEntry extends React.Component {
   }
 }
 
-export default connect((state, ownProps) => ({
-  children: state.course.filter(node => node.parent === ownProps.node_id),
-  numActive: state.course.filter(
-    node =>
-      node.course_name === ownProps.course_name &&
-      node.type === "section" &&
-      !node.exclude
-  ).length
-}))(CourseEntry);
+export default connect(
+  (state, ownProps) => ({
+    children: state.course.filter(node => node.parent === ownProps.node_id),
+    numActive: state.course.filter(
+      node =>
+        node.course === ownProps.course &&
+        node.type === "section" &&
+        !node.exclude
+    ).length
+  }),
+  { delete: deleteCourse }
+)(CourseEntry);
