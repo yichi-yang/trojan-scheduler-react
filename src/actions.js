@@ -8,3 +8,6 @@ export const addLoadingCourse = createAction("courses/addLoading");
 export const removeLoadingCourse = createAction("courses/removeLoading");
 export const addMessage = createAction("message/add");
 export const removeMessage = createAction("message/remove");
+export const editPreferences = createAction("preferences/edit");
+export const addReservedSlot = createAction("reserved/add");
+export const removeReservedSlot = createAction("reserved/remove");

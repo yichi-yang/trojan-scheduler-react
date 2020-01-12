@@ -3,6 +3,7 @@ import { Step, Container } from "semantic-ui-react";
 import CoursebinWidget from "./CoursebinWidget";
 import { Route } from "react-router-dom";
 import StepNav from "./StepNav";
+import PreferencesWidget from "./PreferencesWidget";
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -37,6 +38,7 @@ class Scheduler extends React.Component {
         </Step.Group>
 
         <Route path="/coursebin" component={CoursebinWidget} exact strict />
+        <Route path="/preferences" component={PreferencesWidget} exact strict />
       </Container>
     );
   }

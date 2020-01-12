@@ -8,7 +8,10 @@ import {
   addLoadingCourse,
   removeLoadingCourse,
   addMessage,
-  removeMessage
+  removeMessage,
+  editPreferences,
+  addReservedSlot,
+  removeReservedSlot
 } from "./actions";
 import { transformCourse } from "./util";
 
@@ -95,7 +98,51 @@ export const messageReducer = createReducer([], {
   }
 });
 
+export const preferenceReducer = createReducer(
+  {
+    early_time: "10:00",
+    early_weight: 75,
+    late_time: "15:00",
+    late_weight: 25,
+    break_time: "00:10",
+    break_weight: 50,
+    reserved: [
+      {
+        key: "#default0",
+        begin: "11:30",
+        end: "12:30",
+        length: "0:45",
+        weight: 50
+      },
+      {
+        key: "#default1",
+        begin: "17:30",
+        end: "18:30",
+        length: "0:45",
+        weight: 50
+      }
+    ]
+  },
+  {
+    [editPreferences]: (state, action) => {
+      let { name, value } = action.payload;
+      if (state.hasOwnProperty(name)) {
+        state[name] = value;
+      }
+    },
+    [addReservedSlot]: (state, action) => {
+      let reserved = action.payload;
+      state.reserved.push(reserved);
+    },
+    [removeReservedSlot]: (state, action) => {
+      let toRemove = action.payload;
+      state.reserved = state.reserved.filter(r => !toRemove.includes(r.key));
+    }
+  }
+);
+
 export const allReducers = combineReducers({
   course: courseReducer,
-  message: messageReducer
+  message: messageReducer,
+  preference: preferenceReducer
 });
