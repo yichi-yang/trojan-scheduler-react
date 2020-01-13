@@ -237,7 +237,7 @@ class PreferencesWidget extends React.Component {
                 </Form>
               </Grid.Column>
               <Grid.Column width={7}>
-                <Table striped fixed selectable>
+                <Table fixed selectable>
                   <Table.Header>
                     <Table.Row>
                       <Table.HeaderCell>Begin</Table.HeaderCell>

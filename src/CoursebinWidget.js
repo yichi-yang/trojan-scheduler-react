@@ -35,7 +35,7 @@ class CoursebinWidget extends React.Component {
       return;
     }
     this.props.addLoadingCourse(course);
-    fetch("/api/courses/" + term + "/" + course + "/", {
+    fetch(`/api/courses/${term}/${course}/`, {
       method: "PUT"
     })
       .then(response => {
@@ -43,7 +43,7 @@ class CoursebinWidget extends React.Component {
           return response.json();
         }
         throw new Error(
-          response.status + " cannot fetch " + term + ":" + course
+          `[${response.status}] failed to fetch ${term}:${course}`
         );
       })
       .then(data => {
