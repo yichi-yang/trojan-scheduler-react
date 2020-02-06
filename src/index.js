@@ -6,8 +6,12 @@ import * as serviceWorker from "./serviceWorker";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { allReducers } from "./reducers";
+import persistState from "redux-localstorage";
 
-const store = configureStore({ reducer: allReducers });
+const store = configureStore({
+  reducer: allReducers,
+  enhancers: [persistState("user")]
+});
 
 ReactDOM.render(
   <Provider store={store}>

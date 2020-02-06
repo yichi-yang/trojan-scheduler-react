@@ -11,7 +11,11 @@ import {
   removeMessage,
   editPreferences,
   addReservedSlot,
-  removeReservedSlot
+  removeReservedSlot,
+  saveTaskResult,
+  setUserProfile,
+  setUserTokens,
+  clearUserState
 } from "./actions";
 import { transformCourse } from "./util";
 
@@ -109,16 +113,16 @@ export const preferenceReducer = createReducer(
     reserved: [
       {
         key: "#default0",
-        begin: "11:30",
-        end: "12:30",
-        length: "0:45",
+        from: "11:30",
+        to: "12:30",
+        wiggle: "01:00",
         weight: 50
       },
       {
         key: "#default1",
-        begin: "17:30",
-        end: "18:30",
-        length: "0:45",
+        from: "17:30",
+        to: "18:30",
+        wiggle: "01:00",
         weight: 50
       }
     ]
@@ -141,8 +145,34 @@ export const preferenceReducer = createReducer(
   }
 );
 
+export const taskResultReducer = createReducer(null, {
+  [saveTaskResult]: (state, action) => {
+    let result = action.payload;
+    return result;
+  }
+});
+
+export const userReducer = createReducer(
+  { tokens: null, profile: null },
+  {
+    [setUserTokens]: (state, action) => {
+      let tokens = action.payload;
+      state.tokens = tokens;
+    },
+    [setUserProfile]: (state, action) => {
+      let profile = action.payload;
+      state.profile = profile;
+    },
+    [clearUserState]: (status, action) => {
+      return { tokens: null, profile: null };
+    }
+  }
+);
+
 export const allReducers = combineReducers({
   course: courseReducer,
   message: messageReducer,
-  preference: preferenceReducer
+  preference: preferenceReducer,
+  task_result: taskResultReducer,
+  user: userReducer
 });

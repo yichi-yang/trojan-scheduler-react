@@ -1,6 +1,7 @@
 import React from "react";
 import { Step, Icon } from "semantic-ui-react";
-import { withRouter, Redirect } from "react-router-dom";
+import { withRouter } from "react-router-dom";
+import { addTrailingSlash } from "./util";
 
 class StepNav extends React.Component {
   constructor(props) {
@@ -9,14 +10,11 @@ class StepNav extends React.Component {
   }
 
   render() {
-    if (this.state.redirect) {
-      return <Redirect to={this.state.redirect} />;
-    }
     let { pathname: currPath } = this.props.location;
     let { path, icon, title, content } = this.props;
     return (
       <Step
-        active={path === currPath}
+        active={addTrailingSlash(path) === addTrailingSlash(currPath)}
         onClick={() => this.props.history.push(path)}
       >
         {icon && <Icon name={icon} />}

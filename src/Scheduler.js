@@ -1,9 +1,20 @@
 import React from "react";
-import { Step, Container } from "semantic-ui-react";
-import CoursebinWidget from "./CoursebinWidget";
-import { Route } from "react-router-dom";
-import StepNav from "./StepNav";
-import PreferencesWidget from "./PreferencesWidget";
+import {
+  Container,
+  Menu,
+  Dropdown,
+  List,
+  Grid,
+  Segment,
+  Header,
+  Divider
+} from "semantic-ui-react";
+import { Route, useParams, Switch, NavLink } from "react-router-dom";
+import ScheduleWidget from "./ScheduleWidget";
+import TaskPage from "./TaskPage";
+import NotFound from "./NotFound";
+import AppPage from "./AppPage";
+import LoginButton from "./LoginButton";
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -17,29 +28,135 @@ class Scheduler extends React.Component {
 
   render() {
     return (
-      <Container>
-        <Step.Group widths={3}>
-          <StepNav
-            path="/coursebin"
-            icon="list alternate"
-            title="Coursebin"
-          ></StepNav>
-          <StepNav
-            path="/preferences"
-            icon="setting"
-            title="Preferences"
-            content="..."
-          ></StepNav>
-          <StepNav
-            path="/results"
-            icon="calendar alternate"
-            title="Results"
-          ></StepNav>
-        </Step.Group>
+      <div>
+        <Menu fixed="top" inverted>
+          <Container>
+            <Menu.Item as="a" header>
+              {/* <Image
+                size="mini"
+                src="/logo.png"
+                style={{ marginRight: "1.5em" }}
+              /> */}
+              Project Name
+            </Menu.Item>
+            <Menu.Item as={NavLink} to="/" exact>
+              Home
+            </Menu.Item>
+            <Menu.Item as={NavLink} to="/app/">
+              App
+            </Menu.Item>
 
-        <Route path="/coursebin" component={CoursebinWidget} exact strict />
-        <Route path="/preferences" component={PreferencesWidget} exact strict />
-      </Container>
+            <Dropdown item simple text="Dropdown">
+              <Dropdown.Menu>
+                <Dropdown.Item>List Item</Dropdown.Item>
+                <Dropdown.Item>List Item</Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Header>Header Item</Dropdown.Header>
+                <Dropdown.Item>
+                  <i className="dropdown icon" />
+                  <span className="text">Submenu</span>
+                  <Dropdown.Menu>
+                    <Dropdown.Item>List Item</Dropdown.Item>
+                    <Dropdown.Item>List Item</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Item>
+                <Dropdown.Item>List Item</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
+            <Menu.Menu position="right">
+              <Menu.Item>
+                <LoginButton />
+              </Menu.Item>
+            </Menu.Menu>
+          </Container>
+        </Menu>
+
+        <Container style={{ minHeight: 500, marginTop: "7em" }}>
+          <Switch>
+            <Route path="/app" component={AppPage} />
+            <Route
+              path="/task/:id"
+              exact
+              component={props => {
+                let { id } = useParams();
+                return <TaskPage task_id={id} {...props} />;
+              }}
+            />
+            <Route
+              path="/schedule/:id"
+              exact
+              component={props => {
+                let { id } = useParams();
+                return <ScheduleWidget schedule_id={id} {...props} />;
+              }}
+            />
+            <Route component={NotFound} />
+          </Switch>
+        </Container>
+
+        <Segment
+          inverted
+          vertical
+          style={{ margin: "5em 0em 0em", padding: "5em 0em" }}
+        >
+          <Container textAlign="center">
+            <Grid divided inverted stackable>
+              <Grid.Column width={3}>
+                <Header inverted as="h4" content="Group 1" />
+                <List link inverted>
+                  <List.Item as="a">Link One</List.Item>
+                  <List.Item as="a">Link Two</List.Item>
+                  <List.Item as="a">Link Three</List.Item>
+                  <List.Item as="a">Link Four</List.Item>
+                </List>
+              </Grid.Column>
+              <Grid.Column width={3}>
+                <Header inverted as="h4" content="Group 2" />
+                <List link inverted>
+                  <List.Item as="a">Link One</List.Item>
+                  <List.Item as="a">Link Two</List.Item>
+                  <List.Item as="a">Link Three</List.Item>
+                  <List.Item as="a">Link Four</List.Item>
+                </List>
+              </Grid.Column>
+              <Grid.Column width={3}>
+                <Header inverted as="h4" content="Group 3" />
+                <List link inverted>
+                  <List.Item as="a">Link One</List.Item>
+                  <List.Item as="a">Link Two</List.Item>
+                  <List.Item as="a">Link Three</List.Item>
+                  <List.Item as="a">Link Four</List.Item>
+                </List>
+              </Grid.Column>
+              <Grid.Column width={7}>
+                <Header inverted as="h4" content="Footer Header" />
+                <p>
+                  Extra space for a call to action inside the footer that could
+                  help re-engage users.
+                </p>
+              </Grid.Column>
+            </Grid>
+
+            <Divider inverted section />
+            {/* <Image centered size="mini" src="/logo.png" /> */}
+            <List horizontal inverted divided link size="small">
+              <List.Item as="a" href="#">
+                Site Map
+              </List.Item>
+              <List.Item as="a" href="#">
+                Contact Us
+              </List.Item>
+              <List.Item as="a" href="#">
+                Terms and Conditions
+              </List.Item>
+              <List.Item as="a" href="#">
+                Privacy Policy
+              </List.Item>
+            </List>
+          </Container>
+        </Segment>
+      </div>
     );
   }
 }

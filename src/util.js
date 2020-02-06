@@ -76,3 +76,11 @@ export const transformCourse = course => {
 
   return result;
 };
+
+export const join = (base, path) => {
+  return base.charAt(base.length - 1) === "/" ? base + path : base + "/" + path;
+};
+
+export const addTrailingSlash = url => {
+  return url.charAt(url.length - 1) === "/" ? url : url + "/";
+};

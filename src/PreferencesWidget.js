@@ -23,7 +23,7 @@ class PreferencesWidget extends React.Component {
     this.state = {
       reserved_from: "11:30",
       reserved_to: "12:30",
-      reserved_length: "0:45",
+      reserved_wiggle: "01:00",
       reserved_weight: 50,
       reserved_selected: []
     };
@@ -53,9 +53,9 @@ class PreferencesWidget extends React.Component {
     let id = shortid.generate();
     this.props.addReservedSlot({
       key: id,
-      begin: this.state.reserved_from,
-      end: this.state.reserved_to,
-      length: this.state.reserved_length,
+      from: this.state.reserved_from,
+      to: this.state.reserved_to,
+      wiggle: this.state.reserved_wiggle,
       weight: this.state.reserved_weight
     });
   };
@@ -81,6 +81,7 @@ class PreferencesWidget extends React.Component {
   };
 
   render() {
+    let valid_slot = this.state.reserved_from <= this.state.reserved_to;
     return (
       <Container>
         <Segment.Group>
@@ -185,6 +186,7 @@ class PreferencesWidget extends React.Component {
                       placeholder="HH:MM"
                       iconPosition="left"
                       onChange={this.handleStateChange}
+                      error={!valid_slot}
                       closable
                     />
                     <Form.Field
@@ -195,13 +197,14 @@ class PreferencesWidget extends React.Component {
                       placeholder="HH:MM"
                       iconPosition="left"
                       onChange={this.handleStateChange}
+                      error={!valid_slot}
                       closable
                     />
                     <Form.Field
-                      label="Length"
+                      label="Wiggle Room"
                       control={TimeInput}
-                      name="reserved_length"
-                      value={this.state.reserved_length}
+                      name="reserved_wiggle"
+                      value={this.state.reserved_wiggle}
                       placeholder="HH:MM"
                       iconPosition="left"
                       onChange={this.handleStateChange}
@@ -223,6 +226,7 @@ class PreferencesWidget extends React.Component {
                       control={Button}
                       fluid
                       onClick={this.handleAddReserved}
+                      disabled={!valid_slot}
                     >
                       Add
                     </Form.Field>
@@ -240,9 +244,9 @@ class PreferencesWidget extends React.Component {
                 <Table fixed selectable>
                   <Table.Header>
                     <Table.Row>
-                      <Table.HeaderCell>Begin</Table.HeaderCell>
-                      <Table.HeaderCell>End</Table.HeaderCell>
-                      <Table.HeaderCell>Length</Table.HeaderCell>
+                      <Table.HeaderCell>From</Table.HeaderCell>
+                      <Table.HeaderCell>to</Table.HeaderCell>
+                      <Table.HeaderCell>Wiggle</Table.HeaderCell>
                       <Table.HeaderCell>Weight</Table.HeaderCell>
                     </Table.Row>
                   </Table.Header>
@@ -254,9 +258,9 @@ class PreferencesWidget extends React.Component {
                         active={this.state.reserved_selected.includes(r.key)}
                         onClick={() => this.selectReserved(r.key)}
                       >
-                        <Table.Cell>{r.begin}</Table.Cell>
-                        <Table.Cell>{r.end}</Table.Cell>
-                        <Table.Cell>{r.length}</Table.Cell>
+                        <Table.Cell>{r.from}</Table.Cell>
+                        <Table.Cell>{r.to}</Table.Cell>
+                        <Table.Cell>{r.wiggle}</Table.Cell>
                         <Table.Cell>{r.weight}</Table.Cell>
                       </Table.Row>
                     ))}

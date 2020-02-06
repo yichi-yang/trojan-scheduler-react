@@ -107,7 +107,11 @@ class CoursebinWidget extends React.Component {
                   onChange={(e, props) => this.handleChange(e, props)}
                   width={6}
                 />
-                <Form.Button content="Submit" width={4} fluid />
+                <Form.Button
+                  content="Submit"
+                  width={4}
+                  fluid
+                />
               </Form.Group>
             </Form>
           </Segment>
