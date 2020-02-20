@@ -2,7 +2,32 @@ import React from "react";
 import { Accordion, Icon, Button, Label, Loader } from "semantic-ui-react";
 import PartEntry from "./PartEntry";
 import { connect } from "react-redux";
-import { deleteCourse } from "./actions";
+import {
+  deleteCourse,
+  toggleCourseInclude,
+  toggleCoursePenalize,
+  recursiveSetPenalize
+} from "./actions";
+import GroupSelect from "./GroupSelect";
+
+const colorScheme = [
+  "red",
+  "yellow",
+  "green",
+  "blue",
+  "purple",
+  "brown",
+  "orange",
+  "olive",
+  "teal",
+  "violet",
+  "pink"
+];
+
+export const num2color = num =>
+  colorScheme[
+    (((num - 1) % colorScheme.length) + colorScheme.length) % colorScheme.length
+  ];
 
 class CourseEntry extends React.Component {
   constructor(props) {
@@ -10,89 +35,107 @@ class CourseEntry extends React.Component {
     this.state = { active: props.active };
   }
 
-  toggle() {
+  toggleActive = () => {
     this.setState(prev => ({ active: !prev.active }));
-  }
+  };
+
+  removeHandler = e => {
+    e.stopPropagation();
+    this.props.delete(this.props.course);
+  };
+
+  toggleIncludeHandler = e => {
+    e.stopPropagation();
+    this.props.toggleCourseInclude(this.props.node_id);
+  };
+
+  togglePenaltyHandler = e => {
+    e.stopPropagation();
+    this.props.recursiveSetPenalize({
+      node_id: this.props.node_id,
+      exempt: !this.props.exempt
+    });
+  };
 
   render() {
+    if (this.props.loading) {
+      return (
+        <Accordion.Title active={false} node_id={this.props.node_id}>
+          <Label horizontal>
+            {this.props.course}
+            <Label.Detail>
+              <Loader inline active size="mini"></Loader>
+            </Label.Detail>
+          </Label>
+        </Accordion.Title>
+      );
+    }
     let parts = [];
     for (let part of this.props.children) {
-      parts.push(<PartEntry {...part}></PartEntry>);
+      parts.push(
+        <PartEntry {...part} forceExclude={this.props.exclude}></PartEntry>
+      );
     }
-    const colors = [
-      "red",
-      "yellow",
-      "green",
-      "blue",
-      "purple",
-      "brown",
-      "orange",
-      "olive",
-      "teal",
-      "violet",
-      "pink"
-    ];
-    let isFinal = !this.props.loading;
     let outdated =
       new Date() - new Date(this.props.course_updated) > 10 * 60 * 1000;
+    let buttonInclude = this.props.exclude ? (
+      <Button content="Include" onClick={this.toggleIncludeHandler} />
+    ) : (
+      <Button content="Exclude" onClick={this.toggleIncludeHandler} />
+    );
+    let buttonPenalize = this.props.exempt ? (
+      <Button content="Penalize" onClick={this.togglePenaltyHandler} />
+    ) : (
+      <Button content="Exempt" onClick={this.togglePenaltyHandler} />
+    );
     return (
       <>
         <Accordion.Title
-          active={isFinal ? this.state.active : false}
-          onClick={() => this.toggle()}
+          active={this.state.active}
+          onClick={this.toggleActive}
+          node_id={this.props.node_id}
         >
           <Icon name="dropdown" />
           <Label
-            color={colors[(this.props.group - 1) % colors.length]}
+            basic={this.props.exclude}
+            color={num2color(this.props.group)}
             horizontal
           >
             {this.props.course}
-            <Label.Detail>
-              {isFinal ? (
-                "group " + this.props.group
-              ) : (
-                <Loader inline active size="mini"></Loader>
-              )}
-            </Label.Detail>
+            {this.props.exclude ? " (excluded)" : null}
+            <GroupSelect
+              options={this.props.groupOptions}
+              currentGroup={this.props.group}
+              node_id={this.props.node_id}
+            />
           </Label>
 
-          {isFinal && (
-            <Label circular horizontal>
-              {this.props.numActive}
-            </Label>
-          )}
+          <Label circular horizontal>
+            {this.props.numActive}
+          </Label>
 
-          {isFinal && outdated && (
+          {outdated && (
             <Label circular horizontal color="yellow">
               <Icon name="warning" color="white" fitted></Icon>
             </Label>
           )}
 
-          {isFinal && (
-            <Button.Group size="mini" floated="right" compact>
-              <Button icon labelPosition="left">
-                <Icon name="eye slash"/>
-                Exclude
-              </Button>
-              <Button>All</Button>
-              <Button
-                color="red"
-                course_name={this.props.course_name}
-                onClick={(e, props) => {
-                  e.stopPropagation();
-                  this.props.delete(this.props.course);
-                }}
-              >
-                x
-              </Button>
-            </Button.Group>
-          )}
+          <Button.Group size="mini" floated="right" compact>
+            {buttonInclude}
+            {buttonPenalize}
+            <Button
+              color="red"
+              course_name={this.props.course_name}
+              onClick={this.removeHandler}
+            >
+              x
+            </Button>
+          </Button.Group>
         </Accordion.Title>
-        {isFinal && (
-          <Accordion.Content active={this.state.active}>
-            {parts}
-          </Accordion.Content>
-        )}
+
+        <Accordion.Content active={this.state.active}>
+          {parts}
+        </Accordion.Content>
       </>
     );
   }
@@ -108,5 +151,10 @@ export default connect(
         !node.exclude
     ).length
   }),
-  { delete: deleteCourse }
+  {
+    deleteCourse,
+    toggleCourseInclude,
+    toggleCoursePenalize,
+    recursiveSetPenalize
+  }
 )(CourseEntry);

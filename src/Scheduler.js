@@ -10,11 +10,13 @@ import {
   Divider
 } from "semantic-ui-react";
 import { Route, useParams, Switch, NavLink } from "react-router-dom";
-import ScheduleWidget from "./ScheduleWidget";
+import SchedulePage from "./SchedulePage";
 import TaskPage from "./TaskPage";
 import NotFound from "./NotFound";
 import AppPage from "./AppPage";
 import LoginButton from "./LoginButton";
+import TaskListPage from "./TaskListPage";
+import ScheduleListPage from "./ScheduleListPage";
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -45,6 +47,12 @@ class Scheduler extends React.Component {
             <Menu.Item as={NavLink} to="/app/">
               App
             </Menu.Item>
+            <Menu.Item as={NavLink} to="/task/">
+              Tasks
+            </Menu.Item>
+            <Menu.Item as={NavLink} to="/schedule/">
+              Schedules
+            </Menu.Item>
 
             <Dropdown item simple text="Dropdown">
               <Dropdown.Menu>
@@ -67,6 +75,10 @@ class Scheduler extends React.Component {
             <Menu.Menu position="right">
               <Menu.Item>
                 <LoginButton />
+                {/* <AvatarSelect
+                  onSubmit={str => alert(str)}
+                  buttonProps={{ circular: true }}
+                /> */}
               </Menu.Item>
             </Menu.Menu>
           </Container>
@@ -88,9 +100,11 @@ class Scheduler extends React.Component {
               exact
               component={props => {
                 let { id } = useParams();
-                return <ScheduleWidget schedule_id={id} {...props} />;
+                return <SchedulePage schedule_id={id} {...props} />;
               }}
             />
+            <Route path="/task/" exact component={TaskListPage} />
+            <Route path="/schedule/" exact component={ScheduleListPage} />
             <Route component={NotFound} />
           </Switch>
         </Container>

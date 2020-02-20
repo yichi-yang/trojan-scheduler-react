@@ -84,3 +84,10 @@ export const join = (base, path) => {
 export const addTrailingSlash = url => {
   return url.charAt(url.length - 1) === "/" ? url : url + "/";
 };
+
+export const getScheduleName = (schedule, altId) => {
+  if (schedule && schedule.name) return schedule.name;
+  if (schedule && schedule.id) return `Schedule ${schedule.id}`;
+  if (altId) return `Schedule ${altId}`;
+  return "Schedule ?";
+};

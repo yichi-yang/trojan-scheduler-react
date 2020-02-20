@@ -15,7 +15,7 @@ import { saveTaskResult } from "./actions";
 class ResultsWidget extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = { taskName: "" };
   }
 
   handleSend = () => {
@@ -29,7 +29,8 @@ class ResultsWidget extends React.Component {
       },
       body: JSON.stringify({
         coursebin: this.props.coursebin,
-        preference: this.props.preference
+        preference: this.props.preference,
+        name: this.state.taskName
       })
     };
     if (this.props.tokens && this.props.tokens.access) {
@@ -53,6 +54,10 @@ class ResultsWidget extends React.Component {
       .catch(error => {
         this.setState({ error: error.message, loading: false });
       });
+  };
+
+  handleTaskNameChange = (e, { value }) => {
+    this.setState({ taskName: value });
   };
 
   pollTask(id, ttl, delay) {
@@ -151,6 +156,7 @@ class ResultsWidget extends React.Component {
         button = (
           <Button
             onClick={() => this.setState({ redirect: `/task/${result.id}/` })}
+            type="submit"
           >
             Results
           </Button>
@@ -160,6 +166,7 @@ class ResultsWidget extends React.Component {
       content = (
         <Segment>
           {message}
+
           {button}
         </Segment>
       );
@@ -190,14 +197,23 @@ class ResultsWidget extends React.Component {
           <Segment>
             {coursebinSummary}
             <Form>
-              <Form.Field
-                control={Button}
-                onClick={this.handleSend}
-                loading={loading}
-                disabled={loading || this.props.coursebin.length === 0}
-              >
-                send
-              </Form.Field>
+              <Form.Group>
+                <Form.Input
+                  placeholder="Name your task"
+                  value={this.state.taskName}
+                  onChange={this.handleTaskNameChange}
+                  width={13}
+                />
+                <Form.Button
+                  onClick={this.handleSend}
+                  loading={loading}
+                  disabled={loading || this.props.coursebin.length === 0}
+                  width={3}
+                  fluid
+                >
+                  send
+                </Form.Button>
+              </Form.Group>
             </Form>
           </Segment>
           {content}

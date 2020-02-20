@@ -244,12 +244,15 @@ class LoginButton extends React.Component {
           </Dimmer>
         </Dimmer.Dimmable>
       );
+      let display_name = this.props.user.profile
+        ? this.props.user.profile.display_name
+        : "?";
       const options = [
         {
           key: "user",
           text: (
             <span>
-              Signed in as <strong>Bob Smith</strong>
+              Signed in as <strong>{display_name}</strong>
             </span>
           ),
           disabled: true

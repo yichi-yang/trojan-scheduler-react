@@ -130,6 +130,7 @@ class TaskPage extends React.Component {
     }
     let content = null;
     let details = null;
+    let description = null;
     if (task_data) {
       if (task_data.schedules.length !== 0) {
         content = (
@@ -150,7 +151,7 @@ class TaskPage extends React.Component {
                     </Accordion.Title>
                     {selected === schedule.id && (
                       <Accordion.Content active>
-                        <ScheduleWidget schedule_data={schedule} />
+                        <ScheduleWidget scheduleData={schedule} />
                       </Accordion.Content>
                     )}
                   </React.Fragment>
@@ -167,6 +168,9 @@ class TaskPage extends React.Component {
             {task_data.count} valid schedules found.
           </p>
         );
+      }
+      if (task_data.description) {
+        description = <p style={{ color: "gray" }}>{task_data.description}</p>;
       }
     } else if (!error) {
       content = (
@@ -185,6 +189,7 @@ class TaskPage extends React.Component {
       <Segment>
         {" "}
         <Header>{task_name}</Header>
+        {description}
         {details}
         {message}
         {content}

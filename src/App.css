@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+/* RBC styles */
+
+.rbc-header {
+  border-bottom: none !important;
+}
+
+.rbc-time-view .rbc-allday-cell {
+  display: none;
+}
+
+.rbc-day-slot .rbc-event {
+  border: none !important;
+}
+
+.rbc-event {
+  background-color: #2185d0 !important;
+}
+
+/* fix schedule page avatar */
+
+.ui.items:not(.unstackable) > .item > .image.schedule-user-avatar > img {
+  width: 60px !important;
+}

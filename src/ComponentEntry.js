@@ -28,44 +28,42 @@ class ComponentEntry extends React.Component {
       for (let i in section.days) {
         days.push(weekDays[section.days[i]]);
       }
+      let disabled = section.exclude || this.props.forceExclude;
       section_rows.push(
-        <Table.Row key={section.key} onClick={()=>alert(section.node_id)}>
-          <Table.Cell disabled={section.exclude}>
+        <Table.Row key={section.key}>
+          <Table.Cell disabled={disabled}>
             {section.section_id + (section.need_clearance ? "D" : "R")}
           </Table.Cell>
-          <Table.Cell disabled={section.exclude}>{days.join(", ")}</Table.Cell>
-          <Table.Cell disabled={section.exclude}>{time}</Table.Cell>
-          <Table.Cell disabled={section.exclude}>
-            {section.registered}
-          </Table.Cell>
-          <Table.Cell disabled={section.exclude}>
-            {section.instructor}
-          </Table.Cell>
-          <Table.Cell disabled={section.exclude}>{section.location}</Table.Cell>
-          <Table.Cell>
+          <Table.Cell disabled={disabled}>{days.join(", ")}</Table.Cell>
+          <Table.Cell disabled={disabled}>{time}</Table.Cell>
+          <Table.Cell disabled={disabled}>{section.registered}</Table.Cell>
+          <Table.Cell disabled={disabled}>{section.instructor}</Table.Cell>
+          <Table.Cell disabled={disabled}>{section.location}</Table.Cell>
+          <Table.Cell disabled={this.props.forceExclude}>
             <Checkbox
               key="include"
               label="include"
+              disabled={this.props.forceExclude}
               checked={!section.exclude}
               node_id={section.node_id}
               onClick={(e, props) => {
                 e.stopPropagation();
                 this.props.dispatch(toggleCourseInclude(props.node_id));
               }}
-            ></Checkbox>
+            />
           </Table.Cell>
-          <Table.Cell disabled={section.exclude}>
+          <Table.Cell disabled={disabled}>
             <Checkbox
               key="penalize"
               label="penalize"
-              disabled={section.exclude}
+              disabled={disabled}
               checked={!section.exempt}
               node_id={section.node_id}
               onClick={(e, props) => {
                 e.stopPropagation();
                 this.props.dispatch(toggleCoursePenalize(props.node_id));
               }}
-            ></Checkbox>
+            />
           </Table.Cell>
         </Table.Row>
       );

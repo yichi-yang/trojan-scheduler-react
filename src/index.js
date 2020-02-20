@@ -7,11 +7,14 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { allReducers } from "./reducers";
 import persistState from "redux-localstorage";
+import { setupJwtRefresh } from "./axiosJwtRefresh";
 
 const store = configureStore({
   reducer: allReducers,
   enhancers: [persistState("user")]
 });
+
+// setupJwtRefresh(store);
 
 ReactDOM.render(
   <Provider store={store}>

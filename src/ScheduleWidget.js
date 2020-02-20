@@ -3,18 +3,23 @@ import { Label, Placeholder, Table, Message } from "semantic-ui-react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import { connect } from "react-redux";
+import Rainbow from "rainbowvis.js";
 
 const localizer = momentLocalizer(moment);
+
+const rainbow = new Rainbow();
+rainbow.setSpectrum("#db2828", "#f2711c", "#fbbd08", "#b5cc18", "#21ba45");
+rainbow.setNumberRange(0, 1);
 
 class ScheduleWidget extends React.Component {
   constructor(props) {
     super(props);
-    if (props.schedule_data) {
-      this.state = { schedule_data: props.schedule_data };
+    if (props.scheduleData) {
+      this.state = { scheduleData: props.scheduleData };
     } else if (!props.schedule_id) {
-      this.state = { schedule_data: { error: "no schedule id in props" } };
+      this.state = { scheduleData: { error: "no schedule id in props" } };
     } else {
-      this.state = { schedule_data: undefined };
+      this.state = { scheduleData: undefined };
     }
   }
 
@@ -30,41 +35,45 @@ class ScheduleWidget extends React.Component {
         "Authorization"
       ] = `Bearer ${this.props.tokens.access}`;
     }
-    if (!this.state.schedule_data && this.props.schedule_id) {
+    if (!this.state.scheduleData && this.props.schedule_id) {
       fetch(`/api/schedules/${this.props.schedule_id}/`, fetchOptions)
         .then(response => {
           if (response.ok) {
             return response.json();
           }
           throw new Error(
-            `schedule-${this.props.schedule_id} ${response.status} ${Response.statusText}`
+            `schedule-${this.props.schedule_id} ${response.status} ${response.statusText}`
           );
         })
         .then(data => {
-          this.setState({ schedule_data: data });
+          this.setState({ scheduleData: data });
         })
         .catch(error => {
-          this.setState({ schedule_data: { error: error.message } });
+          this.setState({ scheduleData: { error: error.message } });
         });
     }
   }
 
+  cost2HSL = cost => {
+    return "#" + rainbow.colourAt(1 / (cost / 200 + 1));
+  };
+
   render() {
-    let content = null;
-    if (!this.state.schedule_data) {
+    let content = "Nothing here...";
+    if (!this.state.scheduleData) {
       content = (
         <Placeholder>
           <Placeholder.Line />
           <Placeholder.Line />
         </Placeholder>
       );
-    } else if (this.state.schedule_data.error) {
-      content = <Message error>{this.state.schedule_data.error}</Message>;
-    } else {
+    } else if (this.state.scheduleData.error) {
+      content = <Message error>{this.state.scheduleData.error}</Message>;
+    } else if (this.state.scheduleData.sections) {
       let events = [];
       let start_moments = [];
       let end_moments = [];
-      this.state.schedule_data.sections
+      this.state.scheduleData.sections
         .filter(section => section.start && section.end)
         .forEach(section => {
           let start = moment(`1970-01-04 ${section.start}`);
@@ -106,32 +115,67 @@ class ScheduleWidget extends React.Component {
       content = (
         <>
           <Label.Group>
-            <Label>
+            <Label
+              style={{
+                backgroundColor: this.cost2HSL(
+                  this.state.scheduleData.total_score
+                ),
+                color: "white"
+              }}
+            >
               Total
               <Label.Detail>
-                {this.state.schedule_data.total_score}
+                {this.state.scheduleData.total_score}
               </Label.Detail>
             </Label>
-            <Label>
+            <Label
+              style={{
+                backgroundColor: this.cost2HSL(
+                  this.state.scheduleData.early_score
+                ),
+                color: "white"
+              }}
+            >
               Early
               <Label.Detail>
-                {this.state.schedule_data.early_score}
+                {this.state.scheduleData.early_score}
               </Label.Detail>
             </Label>
-            <Label>
+            <Label
+              style={{
+                backgroundColor: this.cost2HSL(
+                  this.state.scheduleData.late_score
+                ),
+                color: "white"
+              }}
+            >
               Late
-              <Label.Detail>{this.state.schedule_data.late_score}</Label.Detail>
+              <Label.Detail>{this.state.scheduleData.late_score}</Label.Detail>
             </Label>
-            <Label>
+            <Label
+              style={{
+                backgroundColor: this.cost2HSL(
+                  this.state.scheduleData.break_score
+                ),
+                color: "white"
+              }}
+            >
               Breaks
               <Label.Detail>
-                {this.state.schedule_data.break_score}
+                {this.state.scheduleData.break_score}
               </Label.Detail>
             </Label>
-            <Label>
+            <Label
+              style={{
+                backgroundColor: this.cost2HSL(
+                  this.state.scheduleData.reserved_score
+                ),
+                color: "white"
+              }}
+            >
               Reserved
               <Label.Detail>
-                {this.state.schedule_data.reserved_score}
+                {this.state.scheduleData.reserved_score}
               </Label.Detail>
             </Label>
           </Label.Group>
@@ -153,7 +197,7 @@ class ScheduleWidget extends React.Component {
 
           <Table fixed celled>
             <Table.Body>
-              {this.state.schedule_data.sections.map(section => (
+              {this.state.scheduleData.sections.map(section => (
                 <Table.Row key={section.section_id}>
                   <Table.Cell>
                     {section.section_id + (section.need_clearance ? "D" : "R")}

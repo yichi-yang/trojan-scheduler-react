@@ -3,11 +3,12 @@ import {createAction} from "@reduxjs/toolkit"
 export const addCourse = createAction("courses/add");
 export const toggleCourseInclude = createAction("courses/toggleInclude");
 export const toggleCoursePenalize = createAction("courses/togglePenalize");
+export const recursiveSetPenalize = createAction("courses/recSetPenalize");
 export const deleteCourse = createAction("courses/delete");
-export const addLoadingCourse = createAction("courses/addLoading");
-export const removeLoadingCourse = createAction("courses/removeLoading");
-export const addMessage = createAction("message/add");
-export const removeMessage = createAction("message/remove");
+export const setIncludeCourse = createAction("courses/setInclude");
+export const setGroupCourse = createAction("courses/setGroup");
+export const resetCourseGroup = createAction("courses/resetGroup");
+export const startGroupFromOne = createAction("courses/startGroupOne");
 export const editPreferences = createAction("preferences/edit");
 export const addReservedSlot = createAction("reserved/add");
 export const removeReservedSlot = createAction("reserved/remove");

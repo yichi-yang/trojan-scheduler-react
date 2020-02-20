@@ -12,7 +12,12 @@ class PartEntry extends React.Component {
   render() {
     let elements = [];
     for (let component of this.props.children) {
-      elements.push(<ComponentEntry {...component}></ComponentEntry>);
+      elements.push(
+        <ComponentEntry
+          {...component}
+          forceExclude={this.props.forceExclude}
+        ></ComponentEntry>
+      );
     }
     return <Accordion styled>{elements}</Accordion>;
   }

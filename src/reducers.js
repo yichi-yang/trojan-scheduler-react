@@ -4,18 +4,19 @@ import {
   addCourse,
   toggleCourseInclude,
   toggleCoursePenalize,
+  recursiveSetPenalize,
   deleteCourse,
-  addLoadingCourse,
-  removeLoadingCourse,
-  addMessage,
-  removeMessage,
+  setIncludeCourse,
   editPreferences,
   addReservedSlot,
   removeReservedSlot,
   saveTaskResult,
   setUserProfile,
   setUserTokens,
-  clearUserState
+  clearUserState,
+  setGroupCourse,
+  resetCourseGroup,
+  startGroupFromOne
 } from "./actions";
 import { transformCourse } from "./util";
 
@@ -40,7 +41,7 @@ export const courseReducer = createReducer([], {
       }
       if (newCourseArray[i].type === "course" && !newCourseArray[i].group) {
         let prevGroup = state
-          .filter(node => node.type === "course" && !node.loading)
+          .filter(node => node.type === "course")
           .reduce((acc, curr) => Math.max(acc, curr.group), 0);
         newCourseArray[i].group = prevGroup + 1;
       }
@@ -70,35 +71,62 @@ export const courseReducer = createReducer([], {
   },
   [deleteCourse]: (state, action) => {
     let course = action.payload;
-    return state.filter(node => node.course !== course || node.loading);
+    return state.filter(node => node.course !== course);
   },
-  [addLoadingCourse]: (state, action) => {
-    let course = action.payload;
-    let loadingNode = {
-      course: course,
-      type: "course",
-      loading: true,
-      node_id: course + ".loading",
-      key: course + ".loading"
-    };
-    if (!state.find(node => node.node_id === loadingNode.node_id)) {
-      state.push(loadingNode);
+  [setIncludeCourse]: (state, action) => {
+    let include = action.payload;
+    state.forEach(node => {
+      if (node.type === "section") {
+        node.exclude = !include;
+      }
+    });
+  },
+  [setGroupCourse]: (state, action) => {
+    let { group, node_id } = action.payload;
+    for (let node of state) {
+      if (node.node_id === node_id) {
+        node.group = group;
+        return;
+      }
     }
   },
-  [removeLoadingCourse]: (state, action) => {
-    let course = action.payload;
-    return state.filter(node => node.node_id !== course + ".loading");
-  }
-});
-
-export const messageReducer = createReducer([], {
-  [addMessage]: (state, action) => {
-    let message = action.payload;
-    state.push(message);
+  [startGroupFromOne]: (state, action) => {
+    let groups = new Set(
+      state.filter(node => node.type === "course").map(node => node.group)
+    );
+    let sortedGroups = [...groups].sort((a, b) => a - b);
+    let groupMap = new Map();
+    for (let i = 0; i < sortedGroups.length; i++) {
+      groupMap.set(sortedGroups[i], i + 1);
+    }
+    state.forEach(node => {
+      if (node.type === "course") {
+        node.group = groupMap.get(node.group);
+      }
+    });
   },
-  [removeMessage]: (state, action) => {
-    let key = action.payload;
-    return state.filter(msg => msg.key !== key);
+  [resetCourseGroup]: (state, action) => {
+    let i = 0;
+    state.forEach(node => {
+      if (node.type === "course") {
+        node.group = ++i;
+      }
+    });
+  },
+  [recursiveSetPenalize]: (state, action) => {
+    let { node_id, exempt } = action.payload;
+    let children = [node_id];
+    do {
+      let prevChildren = [...children];
+      state
+        .filter(node => prevChildren.includes(node.node_id))
+        .forEach(node => {
+          node.exempt = exempt;
+        });
+      children = state
+        .filter(node => prevChildren.includes(node.parent))
+        .map(node => node.node_id);
+    } while (children.length > 0);
   }
 });
 
@@ -171,7 +199,6 @@ export const userReducer = createReducer(
 
 export const allReducers = combineReducers({
   course: courseReducer,
-  message: messageReducer,
   preference: preferenceReducer,
   task_result: taskResultReducer,
   user: userReducer
