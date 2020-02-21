@@ -91,3 +91,36 @@ export const getScheduleName = (schedule, altId) => {
   if (altId) return `Schedule ${altId}`;
   return "Schedule ?";
 };
+
+export const error2message = (
+  error,
+  noPermissionMessage = null,
+  useResponse = false
+) => {
+  if (useResponse && error.response && error.response.data) {
+    return Object.entries(error.response.data)
+      .map(
+        ([key, value]) =>
+          (key === "detail" ? "" : key + ": ") +
+          (Array.isArray(value) ? value.join() : value)
+      )
+      .join("\n");
+  }
+  if (
+    noPermissionMessage &&
+    error.response &&
+    error.response.status &&
+    [401, 403].includes(error.response.status)
+  ) {
+    return noPermissionMessage;
+  }
+  if (
+    noPermissionMessage &&
+    error.response &&
+    error.response.status &&
+    error.response.statusText
+  ) {
+    return error.response.status + " " + error.response.statusText;
+  }
+  return String(error);
+};

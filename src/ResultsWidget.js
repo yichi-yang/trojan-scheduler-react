@@ -11,6 +11,7 @@ import { connect } from "react-redux";
 import { Redirect } from "react-router-dom";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { saveTaskResult } from "./actions";
+import axios from "axios";
 
 class ResultsWidget extends React.Component {
   constructor(props) {
@@ -21,34 +22,17 @@ class ResultsWidget extends React.Component {
   handleSend = () => {
     this.props.saveTaskResult(null);
     this.setState({ error: null, loading: true });
-    let fetchOptions = {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    axios
+      .post("/api/tasks/", {
         coursebin: this.props.coursebin,
         preference: this.props.preference,
         name: this.state.taskName
       })
-    };
-    if (this.props.tokens && this.props.tokens.access) {
-      fetchOptions.headers[
-        "Authorization"
-      ] = `Bearer ${this.props.tokens.access}`;
-    }
-    fetch(`/api/tasks/`, fetchOptions)
       .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error(`${response.status} ${response.statusText}`);
-      })
-      .then(data => {
+        let { data } = response;
         this.props.saveTaskResult(data);
         if (data.status === "PD" || data.status === "PS") {
-          this.pollTask(data.id, 5, 500);
+          this.pollTask(data.id, 10, 500);
         }
       })
       .catch(error => {
@@ -60,45 +44,33 @@ class ResultsWidget extends React.Component {
     this.setState({ taskName: value });
   };
 
-  pollTask(id, ttl, delay) {
-    let fetchOptions = {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      }
-    };
-    if (this.props.tokens && this.props.tokens.access) {
-      fetchOptions.headers[
-        "Authorization"
-      ] = `Bearer ${this.props.tokens.access}`;
-    }
-    fetch(`/api/tasks/${id}/`, fetchOptions)
+  pollTask = (id, ttl, delay) => {
+    axios
+      .get(`/api/tasks/${id}/`)
       .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error(`${response.status} ${response.statusText}`);
-      })
-      .then(data => {
-        if (!data.status) {
-          throw new Error("Invalid response");
-        }
+        let { data } = response;
+        this.props.saveTaskResult(data);
         if (data.status === "PD" || data.status === "PS") {
-          this.props.saveTaskResult(data);
-          if (ttl <= 0) {
+          this.pollTask(data.id, null, 500);
+          if (ttl !== null && ttl <= 0) {
             this.setState({ error: "Timeout" });
           } else {
-            setTimeout(this.pollTask.bind(this), delay, id, ttl - 1, delay * 2);
+            setTimeout(
+              this.pollTask,
+              delay,
+              id,
+              ttl === null ? null : ttl - 1,
+              Math.min(delay * 2, 60000)
+            );
           }
         } else {
-          this.props.saveTaskResult(data);
           this.setState({ loading: false });
         }
       })
       .catch(error => {
         this.setState({ error: error.message, loading: false });
       });
-  }
+  };
 
   render() {
     let { error, loading } = this.state;
@@ -166,7 +138,6 @@ class ResultsWidget extends React.Component {
       content = (
         <Segment>
           {message}
-
           {button}
         </Segment>
       );

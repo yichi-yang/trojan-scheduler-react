@@ -6,14 +6,16 @@ import {
   Form,
   Segment,
   Image,
-  Dimmer,
-  Loader,
   Placeholder,
   Dropdown
 } from "semantic-ui-react";
 import { connect } from "react-redux";
 import { setUserTokens, setUserProfile, clearUserState } from "./actions";
 import jwtDecode from "jwt-decode";
+import axios from "axios";
+
+const CancelToken = axios.CancelToken;
+const source = CancelToken.source();
 
 class LoginButton extends React.Component {
   constructor(props) {
@@ -22,8 +24,9 @@ class LoginButton extends React.Component {
       username: "",
       password: "",
       loginError: "",
-      refreshing: false,
-      modalOpen: false
+      loadingLogin: false,
+      modalOpen: false,
+      userProfile: {}
     };
   }
 
@@ -36,146 +39,99 @@ class LoginButton extends React.Component {
   login = () => {
     let { username, password } = this.state;
     let { setUserTokens, clearUserState } = this.props;
-    fetch("/api/token/", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username,
-        password
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.refresh && data.access) {
-          setUserTokens(data);
-          this.setRefreshTokenTimer(data.access);
-          this.getProfile(data.access);
-          this.setState({ loginError: "", modalOpen: false });
-        } else if (data.detail) {
-          throw new Error(data.detail);
-        } else {
-          throw new Error(
-            Object.entries(data)
-              .map(
-                ([key, value]) =>
-                  key + ": " + (Array.isArray(value) ? value.join() : value)
-              )
-              .join("\n")
-          );
-        }
+    this.setState({ loadingLogin: true });
+    axios
+      .post(
+        "/api/token/",
+        {
+          username,
+          password
+        },
+        { skipAuthRefresh: true, cancelToken: source.token, NoJWT: true }
+      )
+      .then(response => {
+        let { data } = response;
+        setUserTokens(data);
+        this.setState({
+          loginError: "",
+          modalOpen: false,
+          loadingLogin: false,
+          username: "",
+          password: ""
+        });
+        this.getUserProfile(data);
       })
       .catch(error => {
-        console.log(error.message);
-        this.setState({ loginError: error.message, modalOpen: true });
+        let { data } = error.response;
+        let message = Object.entries(data)
+          .map(
+            ([key, value]) =>
+              (key === "detail" ? "" : key + ": ") +
+              (Array.isArray(value) ? value.join() : value)
+          )
+          .join("\n");
+        this.setState({
+          loginError: message,
+          modalOpen: true,
+          loadingLogin: false
+        });
         clearUserState();
       });
   };
 
-  setRefreshTokenTimer = access => {
-    let { exp } = jwtDecode(access);
-    let msToExpiration = exp * 1000 - new Date().getTime();
-    this.timeoutID = setTimeout(
-      this.refreshToken,
-      Math.max(msToExpiration - 30000, 0)
-    );
-    console.log("refresh after " + Math.max(msToExpiration - 30000, 0) / 1000);
-  };
-
-  refreshToken = () => {
-    let { setUserTokens, clearUserState } = this.props;
-    let { refresh } = this.props.user.tokens;
-    console.log("refresh");
-    if (refresh) {
-      setUserTokens({ refresh });
-      this.setState({ refreshing: true });
-      fetch("/api/token/refresh/", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ refresh })
-      })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else if ([401, 403].includes(response.status)) {
-            throw new Error("Your session has expired. Sign in to continue.");
-          } else {
-            throw new Error(`${response.status} ${response.statusText}`);
-          }
-        })
-        .then(data => {
-          setUserTokens({ refresh, ...data });
-          this.setState({ refreshing: false });
-          this.setRefreshTokenTimer(data.access);
-        })
-        .catch(error => {
-          clearUserState();
-          this.setState({
-            loginError: error.message,
-            refreshing: false,
-            modalOpen: true
-          });
-        });
+  getUserProfile = tokens => {
+    if (!tokens || !tokens.access) {
+      console.log("No access token.");
+      return;
     }
-  };
-
-  getProfile = access => {
-    let { setUserProfile, clearUserState } = this.props;
-    let { user_id } = jwtDecode(access);
-    fetch(`/api/users/${user_id}/`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${access}`
-      }
-    })
+    let { user_id } = jwtDecode(tokens.access);
+    axios
+      .get(`/api/users/${user_id}/`, { cancelToken: source.token })
       .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else if ([401, 403].includes(response.status)) {
-          throw new Error("Your session has expired. Sign in to continue.");
-        } else {
-          throw new Error(`${response.status} ${response.statusText}`);
-        }
-      })
-      .then(data => {
-        setUserProfile(data);
+        this.setState({ userProfile: response.data });
       })
       .catch(error => {
-        clearUserState();
-        this.setState({ loginError: error.message, modalOpen: true });
+        console.log(error);
+        console.log(String(error));
       });
   };
 
   handleOpen = () => this.setState({ modalOpen: true });
 
-  handleClose = () => this.setState({ modalOpen: false });
-
-  componentDidMount() {
-    let { tokens } = this.props.user;
-    if (tokens && tokens.access) {
-      this.setRefreshTokenTimer(tokens.access);
-    }
-  }
-
-  componentWillUnmount() {
-    clearTimeout(this.timeoutID);
-  }
+  handleClose = () =>
+    this.setState({ modalOpen: false, username: "", password: "" });
 
   handleMenuSelect = (e, { value }) => {
     if (value === "sign-out") {
       this.props.clearUserState();
+      this.setState({ userProfile: {} });
     }
   };
 
+  componentDidMount() {
+    let { tokens } = this.props.user;
+    if (tokens) {
+      this.getUserProfile(tokens);
+    }
+    this._hasTokens = Boolean(tokens);
+  }
+
+  componentDidUpdate() {
+    let { tokens } = this.props.user;
+    let hasToken = Boolean(tokens);
+    if (this._hasTokens && !hasToken) {
+      this.setState({ userProfile: {} });
+    }
+    this._hasTokens = hasToken;
+  }
+
+  componentWillUnmount() {
+    source.cancel("axios requests cancelled on unmount");
+  }
+
   render() {
     let button = null;
-    let { loginError } = this.state;
+    let { loginError, loadingLogin } = this.state;
     if (!this.props.user.tokens) {
       button = (
         <Modal
@@ -189,7 +145,7 @@ class LoginButton extends React.Component {
           open={this.state.modalOpen}
         >
           <Modal.Header>Sign In</Modal.Header>
-          <Form error={!!loginError} size="large">
+          <Form error={Boolean(loginError)} size="large">
             <Segment stacked>
               <Message error>
                 {loginError.split("\n").map(line => (
@@ -202,6 +158,7 @@ class LoginButton extends React.Component {
                 iconPosition="left"
                 placeholder="Username"
                 name="username"
+                value={this.state.username}
                 onChange={(e, props) => this.handleStateChange(e, props)}
               />
               <Form.Input
@@ -211,10 +168,17 @@ class LoginButton extends React.Component {
                 placeholder="Password"
                 type="password"
                 name="password"
+                value={this.state.password}
                 onChange={(e, props) => this.handleStateChange(e, props)}
               />
 
-              <Button color="teal" fluid size="large" onClick={this.login}>
+              <Button
+                color="teal"
+                fluid
+                size="large"
+                onClick={this.login}
+                loading={loadingLogin}
+              >
                 Login
               </Button>
             </Segment>
@@ -222,7 +186,7 @@ class LoginButton extends React.Component {
         </Modal>
       );
     } else {
-      let { profile } = this.props.user;
+      let { userProfile: profile } = this.state;
       let avatar = null;
       let placeholder = null;
       if (profile && profile.avatar) {
@@ -235,14 +199,9 @@ class LoginButton extends React.Component {
         );
       }
       let avatarWidget = (
-        <Dimmer.Dimmable as="div" dimmed={this.state.refreshing}>
-          <Image src={avatar} size="mini" rounded>
-            {placeholder}
-          </Image>
-          <Dimmer active={this.state.refreshing}>
-            <Loader active={this.state.refreshing} size="small" />
-          </Dimmer>
-        </Dimmer.Dimmable>
+        <Image src={avatar} size="mini" rounded>
+          {placeholder}
+        </Image>
       );
       let display_name = this.props.user.profile
         ? this.props.user.profile.display_name

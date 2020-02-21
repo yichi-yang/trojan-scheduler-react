@@ -185,7 +185,7 @@ export const userReducer = createReducer(
   {
     [setUserTokens]: (state, action) => {
       let tokens = action.payload;
-      state.tokens = tokens;
+      state.tokens = { ...state.tokens, ...tokens };
     },
     [setUserProfile]: (state, action) => {
       let profile = action.payload;

@@ -18,6 +18,7 @@ import {
 } from "./actions";
 import { connect } from "react-redux";
 import shortid from "shortid";
+import axios from "axios";
 
 class CoursebinWidget extends React.Component {
   constructor(props) {
@@ -66,25 +67,16 @@ class CoursebinWidget extends React.Component {
       return;
     }
     this.addLoading(course);
-    fetch(`/api/courses/${term}/${course}/`, {
-      method: "PUT"
-    })
+    axios
+      .put(`/api/courses/${term}/${course}/`, {})
       .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error(
-          `[${response.status}] failed to fetch ${term}:${course}`
-        );
-      })
-      .then(data => {
         this.removeLoading(course);
-        this.props.addCourse(data);
+        this.props.addCourse(response.data);
       })
       .catch(error => {
         this.removeLoading(course);
         this.displayMessage({
-          content: error.message,
+          content: `${error.message} (${course})`,
           error: true
         });
       });

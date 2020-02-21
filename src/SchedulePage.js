@@ -5,14 +5,15 @@ import {
   Message,
   Header,
   Item,
-  Divider,
   Button,
   Grid
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import moment from "moment";
 import { connect } from "react-redux";
-import { getScheduleName } from "./util";
+import { getScheduleName, error2message } from "./util";
+import axios from "axios";
+import jwtDecode from "jwt-decode";
 
 class SchedulePage extends React.Component {
   constructor(props) {
@@ -30,83 +31,44 @@ class SchedulePage extends React.Component {
 
   loadScheduleData = () => {
     if (this.props.schedule_id) {
-      let fetchOptions = {
-        method: "GET",
-        headers: { Accept: "application/json" }
-      };
-      if (this.props.tokens && this.props.tokens.access) {
-        fetchOptions.headers[
-          "Authorization"
-        ] = `Bearer ${this.props.tokens.access}`;
-      }
-      fetch(`/api/schedules/${this.props.schedule_id}/`, fetchOptions)
+      console.log("load");
+      axios
+        .get(`/api/schedules/${this.props.schedule_id}/`)
         .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else if ([401, 403].includes(response.status)) {
-            throw new Error(
-              "You cannot view this schedule because it is private."
-            );
-          }
-          throw new Error(
-            `task-${this.props.schedule_id} ${response.status} ${response.statusText}`
-          );
-        })
-        .then(data => {
+          let { data } = response;
           this.setStateAsync({ scheduleData: data });
           if (data.user) {
-            fetch(`/api/users/${data.user}/`, fetchOptions)
-              .then(response => {
-                if (response.ok) {
-                  return response.json();
-                }
-                throw new Error(
-                  `user-${data.user} ${response.status} ${response.statusText}`
-                );
-              })
-              .then(scheduleUser => this.setStateAsync({ scheduleUser }));
+            axios
+              .get(`/api/users/${data.user}/`)
+              .then(response =>
+                this.setStateAsync({ scheduleUser: response.data })
+              );
           }
         })
         .catch(error => {
-          this.setStateAsync({ error: error.message });
+          this.setStateAsync({
+            error: error2message(
+              error,
+              "You cannot view this schedule because it is private."
+            )
+          });
         });
     }
   };
 
   setPublic = (e, { value }) => {
     if (this.props.schedule_id) {
-      let fetchOptions = {
-        method: "PATCH",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ public: value })
-      };
-      if (this.props.tokens && this.props.tokens.access) {
-        fetchOptions.headers[
-          "Authorization"
-        ] = `Bearer ${this.props.tokens.access}`;
-      }
-      this.setStateAsync({ loadingSetPublicResult: true });
-      fetch(`/api/schedules/${this.props.schedule_id}/`, fetchOptions)
+      axios
+        .patch(`/api/schedules/${this.props.schedule_id}/`, { public: value })
         .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error(
-            `Cannot change public setting. ${response.status} ${response.statusText}`
-          );
-        })
-        .then(data => {
           this.setStateAsync({
-            scheduleData: data,
+            scheduleData: response.data,
             loadingSetPublicResult: false
           });
         })
         .catch(error => {
           this.setStateAsync({
-            error: error.message,
+            error: error2message(error),
             loadingSetPublicResult: false
           });
         });
@@ -134,6 +96,7 @@ class SchedulePage extends React.Component {
   componentDidUpdate() {
     let isLoggedIn = Boolean(this.props.tokens);
     if (isLoggedIn !== this.isLoggedIn) {
+      console.log("state change");
       this.isLoggedIn = isLoggedIn;
       this.setState({ scheduleData: null, error: null });
       this.loadScheduleData();
@@ -187,31 +150,32 @@ class SchedulePage extends React.Component {
         );
       }
 
-      let { currentUser } = this.props;
-      if (currentUser && scheduleData.user === currentUser.id) {
-        if (scheduleData.public) {
-          setPublicButton = (
-            <Button
-              secondary
-              loading={this.state.loadingSetPublicResult}
-              value={false}
-              onClick={this.setPublic}
-            >
-              unpublish
-            </Button>
-          );
-        } else {
-          setPublicButton = (
-            <Button
-              primary
-              loading={this.state.loadingSetPublicResult}
-              value={true}
-              onClick={this.setPublic}
-            >
-              publish
-            </Button>
-          );
-        }
+      if (this.props.tokens && this.props.tokens.access) {
+        let { user_id } = jwtDecode(this.props.tokens.access);
+        if (user_id === scheduleData.user)
+          if (scheduleData.public) {
+            setPublicButton = (
+              <Button
+                secondary
+                loading={this.state.loadingSetPublicResult}
+                value={false}
+                onClick={this.setPublic}
+              >
+                unpublish
+              </Button>
+            );
+          } else {
+            setPublicButton = (
+              <Button
+                primary
+                loading={this.state.loadingSetPublicResult}
+                value={true}
+                onClick={this.setPublic}
+              >
+                publish
+              </Button>
+            );
+          }
       }
     } else if (!error) {
       content = (
@@ -229,13 +193,13 @@ class SchedulePage extends React.Component {
     return (
       <Segment>
         <Header>{schedule_name}</Header>
-        <Grid stackable verticalAlign="middle" style={{ marginBottom: 0 }}>
-          <Grid.Column width={8}>{details}</Grid.Column>
-          <Grid.Column width={8}>{setPublicButton}</Grid.Column>
-        </Grid>
-
+        {details !== null && (
+          <Grid stackable verticalAlign="middle" style={{ marginBottom: 0 }}>
+            <Grid.Column width={8}>{details}</Grid.Column>
+            <Grid.Column width={8}>{setPublicButton}</Grid.Column>
+          </Grid>
+        )}
         {description}
-
         {message}
         {content}
       </Segment>
@@ -244,6 +208,5 @@ class SchedulePage extends React.Component {
 }
 
 export default connect(state => ({
-  tokens: state.user.tokens,
-  currentUser: state.user.profile
+  tokens: state.user.tokens
 }))(SchedulePage);
