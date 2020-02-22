@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Button,
-  Message,
-  Modal,
-  Form,
-  Image,
-  Header,
-  Item
-} from "semantic-ui-react";
+import { Button, Message, Modal, Form, Item } from "semantic-ui-react";
 import { connect } from "react-redux";
 import { setUserTokens, setUserProfile, clearUserState } from "./actions";
 import axios from "axios";
@@ -20,21 +12,23 @@ import shortid from "shortid";
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
 
+const initState = {
+  username: "",
+  password: "",
+  password2: "",
+  error: null,
+  loading: false,
+  modalOpen: false,
+  page: "signup",
+  userId: null,
+  email: "",
+  avatar: avatarURL + shortid.generate() + ".svg"
+};
+
 class SignupButton extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      username: "",
-      password: "",
-      password2: "",
-      error: null,
-      loading: false,
-      modalOpen: false,
-      page: "signup",
-      userId: null,
-      email: "",
-      avatar: avatarURL + shortid.generate() + ".svg"
-    };
+    this.state = initState;
   }
 
   handleStateChange = (event, { name, value }) => {
@@ -120,14 +114,7 @@ class SignupButton extends React.Component {
 
   handleOpen = () => this.setState({ modalOpen: true });
 
-  handleClose = () =>
-    this.setState({
-      modalOpen: false,
-      username: "",
-      password: "",
-      password2: "",
-      email: ""
-    });
+  handleClose = () => this.setState(initState);
 
   componentDidMount() {}
 
@@ -161,7 +148,7 @@ class SignupButton extends React.Component {
       title = <Modal.Header>Sign Up</Modal.Header>;
       content = (
         <Modal.Content>
-          <Form error={Boolean(error)}>
+          <Form error={Boolean(error)} onSubmit={this.handleSignUp}>
             {message}
             <Form.Input
               fluid
@@ -170,6 +157,7 @@ class SignupButton extends React.Component {
               placeholder="Username"
               name="username"
               value={this.state.username}
+              required
               onChange={(e, props) => this.handleStateChange(e, props)}
             />
             <Form.Input
@@ -180,6 +168,7 @@ class SignupButton extends React.Component {
               type="password"
               name="password"
               value={this.state.password}
+              required
               onChange={(e, props) => this.handleStateChange(e, props)}
             />
             <Form.Input
@@ -190,7 +179,14 @@ class SignupButton extends React.Component {
               type="password"
               name="password2"
               value={this.state.password2}
+              required
               onChange={(e, props) => this.handleStateChange(e, props)}
+            />
+            <Form.Button
+              type="submit"
+              disabled={loading}
+              onClick={this.handleSignUp}
+              style={{ display: "none" }}
             />
           </Form>
         </Modal.Content>
@@ -207,6 +203,7 @@ class SignupButton extends React.Component {
             content="Confirm"
             onClick={this.handleSignUp}
             loading={loading}
+            disabled={loading}
           />
         </Modal.Actions>
       );
@@ -214,7 +211,13 @@ class SignupButton extends React.Component {
       title = <Modal.Header>Setup Account</Modal.Header>;
       content = (
         <Modal.Content>
-          <Form error={Boolean(error)} size="large">
+          <Form
+            error={Boolean(error)}
+            size="large"
+            keys={["email"]}
+            next="avatar"
+            onSubmit={this.handleSignUp}
+          >
             <Item.Group>
               <Item>
                 <Item.Content>
@@ -242,6 +245,14 @@ class SignupButton extends React.Component {
               value={this.state.email}
               onChange={(e, props) => this.handleStateChange(e, props)}
             />
+            <Form.Button
+              type="submit"
+              keys={["email"]}
+              next="avatar"
+              onClick={this.handleUpdate}
+              disabled={loading}
+              style={{ display: "none" }}
+            />
           </Form>
         </Modal.Content>
       );
@@ -259,6 +270,7 @@ class SignupButton extends React.Component {
             labelPosition="left"
             content="Next"
             loading={loading}
+            disabled={loading}
             keys={["email"]}
             next="avatar"
             onClick={this.handleUpdate}
@@ -302,6 +314,7 @@ class SignupButton extends React.Component {
             labelPosition="left"
             content="Next"
             loading={loading}
+            disabled={loading}
             keys={["avatar"]}
             next="done"
             onClick={this.handleUpdate}
@@ -332,7 +345,6 @@ class SignupButton extends React.Component {
             icon="check"
             labelPosition="left"
             content="Done"
-            loading={loading}
             onClick={this.handleClose}
           />
         </Modal.Actions>
@@ -340,12 +352,15 @@ class SignupButton extends React.Component {
     } else {
       title = <Modal.Header>{page}</Modal.Header>;
     }
+    let easyExit = ["signup", "done"].includes(this.state.page);
     return (
       <Modal
         trigger={button}
         size="tiny"
         onClose={this.handleClose}
         open={this.state.modalOpen}
+        closeOnDimmerClick={easyExit}
+        closeOnEscape={easyExit}
       >
         {title}
         {content}
