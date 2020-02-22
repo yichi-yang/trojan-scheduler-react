@@ -9,6 +9,8 @@ import {
 import moment from "moment";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { error2message } from "./util";
 
 class TaskListPage extends React.Component {
   constructor(props) {
@@ -22,31 +24,13 @@ class TaskListPage extends React.Component {
   }
 
   loadTaskData = () => {
-    let fetchOptions = {
-      method: "GET",
-      headers: { Accept: "application/json" }
-    };
-    if (this.props.tokens && this.props.tokens.access) {
-      fetchOptions.headers[
-        "Authorization"
-      ] = `Bearer ${this.props.tokens.access}`;
-    }
-    this.setState({ loading: true, task_list: null, error: null });
-    fetch(`/api/tasks/?page=${this.state.page}`, fetchOptions)
+    axios
+      .get(`/api/tasks/?page=${this.state.page}`)
       .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-        // else if ([401, 403].includes(response.status)) {
-        //   throw new Error("You cannot view this task because it is private.");
-        // }
-        throw new Error(`${response.status} ${response.statusText}`);
-      })
-      .then(data => {
-        this.setState({ task_list: data, loading: false });
+        this.setState({ task_list: response.data, loading: false });
       })
       .catch(error => {
-        this.setState({ error: error.message, loading: false });
+        this.setState({ error: error2message(error), loading: false });
       });
   };
 

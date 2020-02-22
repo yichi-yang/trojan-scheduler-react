@@ -10,19 +10,21 @@ import {
 import ScheduleWidget from "./ScheduleWidget";
 import moment from "moment";
 import { connect } from "react-redux";
+import axios from "axios";
+import { error2message } from "./util";
 
 class TaskPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
-    if (props.task_data) {
-      this.state.task_data = props.task_data;
+    if (props.taskData) {
+      this.state.taskData = props.taskData;
     } else if (
       props.location &&
       props.location.state &&
-      props.location.state.task_data
+      props.location.state.taskData
     ) {
-      this.state.task_data = props.location.state.task_data;
+      this.state.taskData = props.location.state.taskData;
     } else if (!props.task_id) {
       this.state.error = "no task id in props";
     }
@@ -42,37 +44,19 @@ class TaskPage extends React.Component {
 
   loadTaskData = () => {
     if (this.props.task_id) {
-      let fetchOptions = {
-        method: "GET",
-        headers: { Accept: "application/json" }
-      };
-      if (this.props.tokens && this.props.tokens.access) {
-        fetchOptions.headers[
-          "Authorization"
-        ] = `Bearer ${this.props.tokens.access}`;
-      }
-      fetch(`/api/tasks/${this.props.task_id}/`, fetchOptions)
+      axios
+        .get(`/api/tasks/${this.props.task_id}/`)
         .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else if ([401, 403].includes(response.status)) {
-            throw new Error("You cannot view this task because it is private.");
-          }
-          throw new Error(
-            `task-${this.props.task_id} ${response.status} ${response.statusText}`
-          );
-        })
-        .then(data => {
-          this.setState({ task_data: data });
+          this.setState({ taskData: response.data });
         })
         .catch(error => {
-          this.setState({ error: error.message });
+          this.setState({ error: error2message(error) });
         });
     }
   };
 
   componentDidMount() {
-    if (!this.state.task_data) {
+    if (!this.state.taskData) {
       this.loadTaskData();
     }
     this.isLoggedIn = Boolean(this.props.tokens);
@@ -82,19 +66,19 @@ class TaskPage extends React.Component {
     let isLoggedIn = Boolean(this.props.tokens);
     if (isLoggedIn !== this.isLoggedIn) {
       this.isLoggedIn = isLoggedIn;
-      this.setState({ task_data: null, error: null });
+      this.setState({ taskData: null, error: null });
       this.loadTaskData();
     }
   }
 
   render() {
-    let { task_data, error, selected } = this.state;
+    let { taskData, error, selected } = this.state;
     let task_name = null;
-    if (task_data) {
-      if (task_data.name) {
-        task_name = task_data.name;
+    if (taskData) {
+      if (taskData.name) {
+        task_name = taskData.name;
       } else {
-        task_name = "Task " + task_data.id;
+        task_name = "Task " + taskData.id;
       }
     } else {
       task_name = "Task " + this.props.task_id;
@@ -102,8 +86,8 @@ class TaskPage extends React.Component {
     let message = null;
     if (error) {
       message = <Message error>{error}</Message>;
-    } else if (task_data) {
-      switch (task_data.status) {
+    } else if (taskData) {
+      switch (taskData.status) {
         case "PD":
           message = <Message>Pending...</Message>;
           break;
@@ -111,16 +95,16 @@ class TaskPage extends React.Component {
           message = <Message>Processing...</Message>;
           break;
         case "WN":
-          message = <Message warning>{task_data.message}</Message>;
+          message = <Message warning>{taskData.message}</Message>;
           break;
         case "FL":
-          message = <Message error>{task_data.message}</Message>;
+          message = <Message error>{taskData.message}</Message>;
           break;
         case "EX":
           message = (
             <Message error>
               Sorry, we encountered an issue generating schedules for you, send
-              us a message with this error code: {task_data.message}.
+              us a message with this error code: {taskData.message}.
             </Message>
           );
           break;
@@ -131,12 +115,12 @@ class TaskPage extends React.Component {
     let content = null;
     let details = null;
     let description = null;
-    if (task_data) {
-      if (task_data.schedules.length !== 0) {
+    if (taskData) {
+      if (taskData.schedules.length !== 0) {
         content = (
           <>
             <Accordion styled fluid>
-              {[...task_data.schedules]
+              {[...taskData.schedules]
                 .sort((a, b) => a.id - b.id)
                 .map(schedule => (
                   <React.Fragment key={schedule.id}>
@@ -160,17 +144,17 @@ class TaskPage extends React.Component {
           </>
         );
       }
-      if (task_data.status === "DN" || task_data.schedules.length > 0) {
+      if (taskData.status === "DN" || taskData.schedules.length > 0) {
         details = (
           <p style={{ color: "gray" }}>
-            Created {moment(task_data.created).fromNow()}
+            Created {moment(taskData.created).fromNow()}
             {", "}
-            {task_data.count} valid schedules found.
+            {taskData.count} valid schedules found.
           </p>
         );
       }
-      if (task_data.description) {
-        description = <p style={{ color: "gray" }}>{task_data.description}</p>;
+      if (taskData.description) {
+        description = <p style={{ color: "gray" }}>{taskData.description}</p>;
       }
     } else if (!error) {
       content = (

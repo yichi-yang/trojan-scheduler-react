@@ -43,6 +43,13 @@ class SchedulePage extends React.Component {
               .then(response =>
                 this.setStateAsync({ scheduleUser: response.data })
               );
+          } else {
+            this.setStateAsync({
+              scheduleUser: {
+                avatar: "https://avatars.dicebear.com/v2/bottts/Empty.svg",
+                display_name: "Anonymous"
+              }
+            });
           }
         })
         .catch(error => {

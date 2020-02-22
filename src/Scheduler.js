@@ -15,6 +15,7 @@ import TaskPage from "./TaskPage";
 import NotFound from "./NotFound";
 import AppPage from "./AppPage";
 import LoginButton from "./LoginButton";
+import SignupButton from "./SignupButton";
 import TaskListPage from "./TaskListPage";
 import ScheduleListPage from "./ScheduleListPage";
 
@@ -75,10 +76,7 @@ class Scheduler extends React.Component {
             <Menu.Menu position="right">
               <Menu.Item>
                 <LoginButton />
-                {/* <AvatarSelect
-                  onSubmit={str => alert(str)}
-                  buttonProps={{ circular: true }}
-                /> */}
+                <SignupButton />
               </Menu.Item>
             </Menu.Menu>
           </Container>

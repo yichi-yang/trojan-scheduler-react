@@ -4,6 +4,8 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import { connect } from "react-redux";
 import Rainbow from "rainbowvis.js";
+import axios from "axios";
+import { error2message } from "./util";
 
 const localizer = momentLocalizer(moment);
 
@@ -17,7 +19,7 @@ class ScheduleWidget extends React.Component {
     if (props.scheduleData) {
       this.state = { scheduleData: props.scheduleData };
     } else if (!props.schedule_id) {
-      this.state = { scheduleData: { error: "no schedule id in props" } };
+      this.state = { error: "no schedule id in props" };
     } else {
       this.state = { scheduleData: undefined };
     }
@@ -26,30 +28,14 @@ class ScheduleWidget extends React.Component {
   weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   componentDidMount() {
-    let fetchOptions = {
-      method: "GET",
-      headers: { Accept: "application/json" }
-    };
-    if (this.props.tokens && this.props.tokens.access) {
-      fetchOptions.headers[
-        "Authorization"
-      ] = `Bearer ${this.props.tokens.access}`;
-    }
-    if (!this.state.scheduleData && this.props.schedule_id) {
-      fetch(`/api/schedules/${this.props.schedule_id}/`, fetchOptions)
+    if (this.props.schedule_id) {
+      axios
+        .get(`/api/schedules/${this.props.schedule_id}/`)
         .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error(
-            `schedule-${this.props.schedule_id} ${response.status} ${response.statusText}`
-          );
-        })
-        .then(data => {
-          this.setState({ scheduleData: data });
+          this.setState({ scheduleData: response.data });
         })
         .catch(error => {
-          this.setState({ scheduleData: { error: error.message } });
+          this.setState({ error: error2message(error) });
         });
     }
   }
@@ -67,8 +53,8 @@ class ScheduleWidget extends React.Component {
           <Placeholder.Line />
         </Placeholder>
       );
-    } else if (this.state.scheduleData.error) {
-      content = <Message error>{this.state.scheduleData.error}</Message>;
+    } else if (this.state.error) {
+      content = <Message error>{this.state.error}</Message>;
     } else if (this.state.scheduleData.sections) {
       let events = [];
       let start_moments = [];
@@ -124,9 +110,7 @@ class ScheduleWidget extends React.Component {
               }}
             >
               Total
-              <Label.Detail>
-                {this.state.scheduleData.total_score}
-              </Label.Detail>
+              <Label.Detail>{this.state.scheduleData.total_score}</Label.Detail>
             </Label>
             <Label
               style={{
@@ -137,9 +121,7 @@ class ScheduleWidget extends React.Component {
               }}
             >
               Early
-              <Label.Detail>
-                {this.state.scheduleData.early_score}
-              </Label.Detail>
+              <Label.Detail>{this.state.scheduleData.early_score}</Label.Detail>
             </Label>
             <Label
               style={{
@@ -161,9 +143,7 @@ class ScheduleWidget extends React.Component {
               }}
             >
               Breaks
-              <Label.Detail>
-                {this.state.scheduleData.break_score}
-              </Label.Detail>
+              <Label.Detail>{this.state.scheduleData.break_score}</Label.Detail>
             </Label>
             <Label
               style={{

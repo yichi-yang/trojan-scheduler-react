@@ -74,7 +74,11 @@ const errorFilter = error => {
           }
           // verify the token, if it is valid, do not refresh
           return axios
-            .post("/api/token/refresh/", { token })
+            .post(
+              "/api/token/verify/",
+              { token },
+              { skipAuthRefresh: true, NoJWT: true }
+            )
             .then(() => {
               error.config.skipAuthRefresh = true;
               return Promise.reject(error);

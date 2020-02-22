@@ -121,7 +121,7 @@ class ResultsWidget extends React.Component {
       if (this.state.redirect) {
         button = (
           <Redirect
-            to={{ pathname: this.state.redirect, state: { task_data: result } }}
+            to={{ pathname: this.state.redirect, state: { taskData: result } }}
           />
         );
       } else if (result.status === "DN" || result.status === "WN") {

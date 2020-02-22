@@ -2,12 +2,17 @@ import React from "react";
 import { Modal, Image, Button, Form, Grid, Input } from "semantic-ui-react";
 import shortid from "shortid";
 
-const avatarURL = "https://avatars.dicebear.com/v2/human/";
+export const avatarURL = "https://avatars.dicebear.com/v2/human/";
 
 class AvatarSelect extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { open: false, choices: null, selected: null, seed: "" };
+    this.state = {
+      open: false,
+      choices: null,
+      selected: null,
+      seed: ""
+    };
   }
 
   open = () => {
@@ -24,7 +29,7 @@ class AvatarSelect extends React.Component {
 
   submit = () => {
     if (this.props.onSubmit) {
-      this.props.onSubmit(this.state.selected);
+      this.props.onSubmit(avatarURL + this.state.selected + ".svg");
     }
     this.close();
   };
@@ -34,11 +39,23 @@ class AvatarSelect extends React.Component {
   };
 
   refreshChoices = () => {
-    let choices = [];
-    for (let i = 0; i < 8; i++) {
-      choices.push(shortid.generate());
+    let { choices, selected } = this.state;
+    if (!choices || choices.length !== 8 || !selected) {
+      choices = [];
+      for (let i = 0; i < 8; i++) {
+        choices.push(shortid.generate());
+      }
+      if (this.props.default) {
+        choices[0] = this.props.default;
+      }
+      this.setState({ choices, selected: choices[0] });
+    } else {
+      this.setState({
+        choices: choices.map(str =>
+          str === selected ? str : shortid.generate()
+        )
+      });
     }
-    this.setState({ choices, selected: choices[0] });
   };
 
   handleSeedChange = (e, { value }) => {
@@ -109,7 +126,7 @@ class AvatarSelect extends React.Component {
               <Form.Field
                 control={Button}
                 fluid
-                content="Change Choices"
+                content="Load More"
                 onClick={this.refreshChoices}
                 primary
                 type="button"
@@ -133,11 +150,7 @@ class AvatarSelect extends React.Component {
     }
     return (
       <Modal
-        trigger={
-          <Button onClick={this.open} {...buttonProps}>
-            Show Modal
-          </Button>
-        }
+        trigger={<Button onClick={this.open} {...buttonProps} />}
         open={this.state.open}
         onClose={this.close}
         size="small"

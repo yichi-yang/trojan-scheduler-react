@@ -13,6 +13,7 @@ import { connect } from "react-redux";
 import { setUserTokens, setUserProfile, clearUserState } from "./actions";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
+import { error2message } from "./util";
 
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
@@ -25,8 +26,7 @@ class LoginButton extends React.Component {
       password: "",
       loginError: "",
       loadingLogin: false,
-      modalOpen: false,
-      userProfile: {}
+      modalOpen: false
     };
   }
 
@@ -62,16 +62,8 @@ class LoginButton extends React.Component {
         this.getUserProfile(data);
       })
       .catch(error => {
-        let { data } = error.response;
-        let message = Object.entries(data)
-          .map(
-            ([key, value]) =>
-              (key === "detail" ? "" : key + ": ") +
-              (Array.isArray(value) ? value.join() : value)
-          )
-          .join("\n");
         this.setState({
-          loginError: message,
+          loginError: error2message(error, null, true),
           modalOpen: true,
           loadingLogin: false
         });
@@ -88,7 +80,7 @@ class LoginButton extends React.Component {
     axios
       .get(`/api/users/${user_id}/`, { cancelToken: source.token })
       .then(response => {
-        this.setState({ userProfile: response.data });
+        this.props.setUserProfile(response.data);
       })
       .catch(error => {
         console.log(error);
@@ -109,21 +101,13 @@ class LoginButton extends React.Component {
   };
 
   componentDidMount() {
-    let { tokens } = this.props.user;
+    let { tokens } = this.props;
     if (tokens) {
       this.getUserProfile(tokens);
     }
-    this._hasTokens = Boolean(tokens);
   }
 
-  componentDidUpdate() {
-    let { tokens } = this.props.user;
-    let hasToken = Boolean(tokens);
-    if (this._hasTokens && !hasToken) {
-      this.setState({ userProfile: {} });
-    }
-    this._hasTokens = hasToken;
-  }
+  componentDidUpdate() {}
 
   componentWillUnmount() {
     source.cancel("axios requests cancelled on unmount");
@@ -132,7 +116,7 @@ class LoginButton extends React.Component {
   render() {
     let button = null;
     let { loginError, loadingLogin } = this.state;
-    if (!this.props.user.tokens) {
+    if (!this.props.tokens) {
       button = (
         <Modal
           trigger={
@@ -186,7 +170,7 @@ class LoginButton extends React.Component {
         </Modal>
       );
     } else {
-      let { userProfile: profile } = this.state;
+      let { profile } = this.props;
       let avatar = null;
       let placeholder = null;
       if (profile && profile.avatar) {
@@ -203,8 +187,8 @@ class LoginButton extends React.Component {
           {placeholder}
         </Image>
       );
-      let display_name = this.props.user.profile
-        ? this.props.user.profile.display_name
+      let display_name = profile
+        ? profile.display_name
         : "?";
       const options = [
         {
@@ -239,7 +223,8 @@ class LoginButton extends React.Component {
 
 export default connect(
   state => ({
-    user: state.user
+    tokens: state.user.tokens,
+    profile: state.user.profile
   }),
   { setUserTokens, clearUserState, setUserProfile }
 )(LoginButton);

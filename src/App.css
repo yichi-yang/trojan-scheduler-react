@@ -58,5 +58,5 @@
 /* fix schedule page avatar */
 
 .ui.items:not(.unstackable) > .item > .image.schedule-user-avatar > img {
-  width: 60px !important;
+  width: 80px !important;
 }
