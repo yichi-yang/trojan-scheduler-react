@@ -1,3 +1,5 @@
+import React from "react";
+
 const createCourse = courseData => ({
   type: "course",
   course: courseData.name,
@@ -97,7 +99,13 @@ export const error2message = (
   noPermissionMessage = null,
   useResponse = false
 ) => {
-  if (useResponse && error.response && error.response.data) {
+  if (
+    useResponse &&
+    error.response &&
+    error.response.data &&
+    error.response.status &&
+    (error.response.status < 500 || error.response.status >= 600)
+  ) {
     return Object.entries(error.response.data)
       .map(
         ([key, value]) =>
@@ -124,3 +132,69 @@ export const error2message = (
   }
   return String(error);
 };
+
+export const errorFormatterCreator = (...formatters) => error => {
+  let message = null;
+  for (let formatter of formatters) {
+    if ((message = formatter(error))) return message;
+  }
+  return String(error);
+};
+
+export const customMessageFormatter = (message, status) => error => {
+  if (
+    error.response &&
+    error.response.status &&
+    (error.response.status === status || status.includes(error.response.status))
+  ) {
+    return message;
+  }
+  return null;
+};
+
+export const noPermissionFormatter = (message, status = [401, 403]) =>
+  customMessageFormatter(message, status);
+
+export const statusCodeFormatter = error => {
+  if (error.response && error.response.status && error.response.statusText) {
+    return error.response.status + " " + error.response.statusText;
+  }
+  return null;
+};
+
+const capitalizeFirstLetter = string => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+const formatKey = key => {
+  if (key === "detail" || key === "description") return "";
+  return capitalizeFirstLetter(key.replace(/_+/, " ")) + ": ";
+};
+
+const flattenErrorData = data => {
+  let messages = [];
+  for (let key in data) {
+    if (Array.isArray(data[key])) {
+      messages.push(`${formatKey(key)}${data[key].join("; ")}`);
+    } else if (typeof data[key] == "object") {
+      messages.push(...flattenErrorData(data[key]));
+    } else {
+      messages.push(`${formatKey(key)}${data[key]}`);
+    }
+  }
+  return messages;
+};
+
+export const responseDataFormatter = error => {
+  if (
+    error.response &&
+    error.response.data &&
+    typeof error.response.data == "object"
+  ) {
+    return flattenErrorData(error.response.data).join("\n");
+  }
+  return null;
+};
+
+export const str2para = str =>
+  str.split("\n").map((line, index) => <p key={index}>{line}</p>);

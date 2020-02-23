@@ -13,10 +13,20 @@ import { connect } from "react-redux";
 import { setUserTokens, setUserProfile, clearUserState } from "./actions";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
-import { error2message } from "./util";
+import {
+  errorFormatterCreator,
+  responseDataFormatter,
+  statusCodeFormatter,
+  str2para
+} from "./util";
 
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
+
+const errorFormatter = errorFormatterCreator(
+  responseDataFormatter,
+  statusCodeFormatter
+);
 
 class LoginButton extends React.Component {
   constructor(props) {
@@ -63,7 +73,7 @@ class LoginButton extends React.Component {
       })
       .catch(error => {
         this.setState({
-          loginError: error2message(error, null, true),
+          loginError: errorFormatter(error),
           modalOpen: true,
           loadingLogin: false
         });
@@ -131,11 +141,7 @@ class LoginButton extends React.Component {
           <Modal.Header>Sign In</Modal.Header>
           <Form error={Boolean(loginError)} size="large">
             <Segment stacked>
-              <Message error>
-                {loginError.split("\n").map(line => (
-                  <p key={line}>{line}</p>
-                ))}
-              </Message>
+              <Message error>{str2para(loginError)}</Message>
               <Form.Input
                 fluid
                 icon="user"
@@ -187,9 +193,7 @@ class LoginButton extends React.Component {
           {placeholder}
         </Image>
       );
-      let display_name = profile
-        ? profile.display_name
-        : "?";
+      let display_name = profile ? profile.display_name : "?";
       const options = [
         {
           key: "user",

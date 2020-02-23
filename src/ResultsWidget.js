@@ -12,6 +12,7 @@ import { Redirect } from "react-router-dom";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { saveTaskResult } from "./actions";
 import axios from "axios";
+import { error2message } from "./util";
 
 class ResultsWidget extends React.Component {
   constructor(props) {
@@ -36,7 +37,10 @@ class ResultsWidget extends React.Component {
         }
       })
       .catch(error => {
-        this.setState({ error: error.message, loading: false });
+        this.setState({
+          error: error2message(error, null, true),
+          loading: false
+        });
       });
   };
 
