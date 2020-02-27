@@ -1,4 +1,4 @@
-import {createAction} from "@reduxjs/toolkit"
+import { createAction } from "@reduxjs/toolkit";
 
 export const addCourse = createAction("courses/add");
 export const toggleCourseInclude = createAction("courses/toggleInclude");
@@ -9,7 +9,9 @@ export const setIncludeCourse = createAction("courses/setInclude");
 export const setGroupCourse = createAction("courses/setGroup");
 export const resetCourseGroup = createAction("courses/resetGroup");
 export const startGroupFromOne = createAction("courses/startGroupOne");
+export const loadCoursebin = createAction("courses/load");
 export const editPreferences = createAction("preferences/edit");
+export const loadPreferences = createAction("preferences/load");
 export const addReservedSlot = createAction("reserved/add");
 export const removeReservedSlot = createAction("reserved/remove");
 export const saveTaskResult = createAction("task/save");

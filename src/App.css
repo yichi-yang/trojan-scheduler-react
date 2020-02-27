@@ -83,3 +83,22 @@ ul.share-buttons .sr-only {
   width: 1px;
   overflow: hidden;
 }
+
+.schedule-button {
+  box-sizing: border-box;
+  margin-right: 0.8% !important;
+  width: 19.2%;
+  padding-left: unset !important;
+  padding-right: unset !important;
+}
+
+/* toast min width */
+.ui-alerts {
+  min-width: 400px;
+}
+
+@media only screen and (max-width: 767px) {
+  .ui-alerts {
+    min-width: 80%;
+  }
+}

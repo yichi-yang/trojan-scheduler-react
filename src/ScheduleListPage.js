@@ -38,10 +38,9 @@ class ScheduleListPage extends React.Component {
     if (!this.state.schedule_list) {
       this.loadScheduleData();
     }
-    this.isLoggedIn = Boolean(this.props.tokens);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     let page = 1;
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
@@ -50,9 +49,7 @@ class ScheduleListPage extends React.Component {
     if (this.state.page !== page) {
       this.setState({ page }, this.loadScheduleData);
     }
-    let isLoggedIn = Boolean(this.props.tokens);
-    if (isLoggedIn !== this.isLoggedIn) {
-      this.isLoggedIn = isLoggedIn;
+    if (Boolean(prevProps.tokens) !== Boolean(this.props.tokens)) {
       this.loadScheduleData();
     }
   }

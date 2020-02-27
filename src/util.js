@@ -167,19 +167,23 @@ const capitalizeFirstLetter = string => {
 };
 
 const formatKey = key => {
-  if (key === "detail" || key === "description") return "";
+  if (key === null || key === "detail" || key === "description") return "";
   return capitalizeFirstLetter(key.replace(/_+/, " ")) + ": ";
 };
 
-const flattenErrorData = data => {
+const flattenErrorData = (data, parentKey = null) => {
+  if (typeof data != "object") {
+    return String(data);
+  }
   let messages = [];
   for (let key in data) {
+    let keyName = Array.isArray(data) ? parentKey : key;
     if (Array.isArray(data[key])) {
-      messages.push(`${formatKey(key)}${data[key].join("; ")}`);
+      messages.push(...flattenErrorData(data[key], key));
     } else if (typeof data[key] == "object") {
-      messages.push(...flattenErrorData(data[key]));
+      messages.push(...flattenErrorData(data[key], key));
     } else {
-      messages.push(`${formatKey(key)}${data[key]}`);
+      messages.push(`${formatKey(keyName)}${data[key]}`);
     }
   }
   return messages;

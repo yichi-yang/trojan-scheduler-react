@@ -9,13 +9,14 @@ import {
   Grid,
   Icon,
   Modal,
-  Form
+  Form,
+  Confirm
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
+import RedirectButton from "./RedirectButton";
 import moment from "moment";
 import { connect } from "react-redux";
 import axios from "axios";
-import jwtDecode from "jwt-decode";
 import {
   errorFormatterCreator,
   responseDataFormatter,
@@ -25,11 +26,10 @@ import {
   getScheduleName
 } from "./util";
 
-const CancelToken = axios.CancelToken;
-const source = CancelToken.source();
-
 const errorFormatter = errorFormatterCreator(
-  noPermissionFormatter("You cannot view this schedule because it is private."),
+  noPermissionFormatter(
+    "You cannot view or edit this schedule because it is private."
+  ),
   responseDataFormatter,
   statusCodeFormatter
 );
@@ -42,13 +42,14 @@ class SchedulePage extends React.Component {
       scheduleUser: null,
       error: null,
       loading: false,
-      editModalOpen: false,
+      openModal: null,
       editTitle: "",
       editDescription: ""
     };
     if (!props.schedule_id) {
       this.state.error = "no schedule id in props";
     }
+    this.cancelSource = axios.CancelToken.source();
   }
 
   loadScheduleData = () => {
@@ -56,7 +57,7 @@ class SchedulePage extends React.Component {
       console.log("load");
       axios
         .get(`/api/schedules/${this.props.schedule_id}/`, {
-          cancelToken: source.token
+          cancelToken: this.cancelSource.token
         })
         .then(response => {
           let { data } = response;
@@ -64,7 +65,7 @@ class SchedulePage extends React.Component {
           if (data.user) {
             axios
               .get(`/api/users/${data.user}/`, {
-                cancelToken: source.token
+                cancelToken: this.cancelSource.token
               })
               .then(response =>
                 this.setStateAsync({ scheduleUser: response.data })
@@ -88,13 +89,14 @@ class SchedulePage extends React.Component {
 
   handleUpdate = (e, { values }) => {
     if (this.props.schedule_id) {
+      this.setState({ loading: true });
       axios
         .patch(`/api/schedules/${this.props.schedule_id}/`, values)
         .then(response => {
           this.setStateAsync({
             scheduleData: response.data,
             loading: false,
-            editModalOpen: false,
+            openModal: null,
             error: null
           });
         })
@@ -102,7 +104,30 @@ class SchedulePage extends React.Component {
           this.setStateAsync({
             error: errorFormatter(error),
             loading: false,
-            editModalOpen: false
+            openModal: null
+          });
+        });
+    }
+  };
+
+  handleDelete = () => {
+    if (this.props.schedule_id) {
+      this.setState({ loading: true });
+      axios
+        .delete(`/api/schedules/${this.props.schedule_id}/`)
+        .then(response => {
+          this.setStateAsync({
+            scheduleData: response.data,
+            loading: false,
+            error: "This schedule has been deleted.",
+            openModal: null
+          });
+        })
+        .catch(error => {
+          this.setStateAsync({
+            error: errorFormatter(error),
+            loading: false,
+            openModal: null
           });
         });
     }
@@ -110,14 +135,20 @@ class SchedulePage extends React.Component {
 
   openEditModal = (e, { title, description }) => {
     this.setState({
-      editModalOpen: true,
+      openModal: "edit",
       editTitle: title,
       editDescription: description
     });
   };
 
-  closeEditModal = () => {
-    this.setState({ editModalOpen: false });
+  openConfirmModal = () => {
+    this.setState({
+      openModal: "delete-confirm"
+    });
+  };
+
+  closeModals = () => {
+    this.setState({ openModal: null });
   };
 
   handleEditChange = (e, { name, value }) => {
@@ -137,21 +168,21 @@ class SchedulePage extends React.Component {
     if (!this.state.scheduleData) {
       this.loadScheduleData();
     }
-    this.isLoggedIn = Boolean(this.props.tokens);
   }
 
   componentWillUnmount() {
     this._mounted = false;
-    source.cancel("axios requests cancelled on unmount");
+    this.cancelSource.cancel(
+      "axios requests cancelled on schedule page unmount"
+    );
   }
 
-  componentDidUpdate() {
-    let isLoggedIn = Boolean(this.props.tokens);
-    if (isLoggedIn !== this.isLoggedIn) {
-      console.log("state change");
-      this.isLoggedIn = isLoggedIn;
-      this.setState({ scheduleData: null, error: null });
-      this.loadScheduleData();
+  componentDidUpdate(prevProps) {
+    if (Boolean(prevProps.tokens) !== Boolean(this.props.tokens)) {
+      this.setState(
+        { scheduleData: null, error: null },
+        this.loadScheduleData()
+      );
     }
   }
 
@@ -161,12 +192,8 @@ class SchedulePage extends React.Component {
     let message = error ? <Message error>{str2para(error)}</Message> : null;
     let content = null;
     let details = null;
-    let setPublicButton = null;
-    let saveUnsaveButton = null;
-    let editButton = null;
+    let editButtonGroup = null;
     if (scheduleData) {
-      content = <ScheduleWidget scheduleData={scheduleData} />;
-
       details = (
         <Item.Group>
           <Item>
@@ -194,60 +221,64 @@ class SchedulePage extends React.Component {
         </Item.Group>
       );
 
-      if (this.props.tokens && this.props.tokens.access) {
-        let { user_id } = jwtDecode(this.props.tokens.access);
-        if (user_id === scheduleData.user)
-          if (scheduleData.public) {
-            setPublicButton = (
-              <Button
-                secondary
-                loading={this.state.loading}
-                disabled={this.state.loading}
-                value={false}
-                onClick={this.handleUpdate}
-                values={{ public: false }}
-              >
-                unpublish
-              </Button>
-            );
-          } else {
-            setPublicButton = (
-              <Button
-                primary
-                loading={this.state.loading}
-                disabled={this.state.loading}
-                value={true}
-                onClick={this.handleUpdate}
-                values={{ public: true, saved: true }}
-              >
-                publish
-              </Button>
-            );
-          }
-        if (scheduleData.saved) {
-          saveUnsaveButton = (
+      let canEdit =
+        this.props.profile &&
+        this.props.profile.id &&
+        this.props.profile.id === scheduleData.user;
+
+      let canAccessTask = canEdit || scheduleData.user === null;
+
+      if (canEdit) {
+        let publishButton = null;
+        let saveButton = null;
+        let editButton = null;
+        let deleteButton = null;
+        let loadButton = null;
+        if (scheduleData.public) {
+          publishButton = (
             <Button
-              secondary
-              loading={this.state.loading}
+              className="schedule-button"
+              color="green"
               disabled={this.state.loading}
-              value={false}
               onClick={this.handleUpdate}
-              values={{ public: false, saved: false }}
+              values={{ public: false }}
             >
-              undo save
+              public
             </Button>
           );
         } else {
-          saveUnsaveButton = (
+          publishButton = (
             <Button
-              primary
-              loading={this.state.loading}
+              className="schedule-button"
               disabled={this.state.loading}
-              value={true}
+              onClick={this.handleUpdate}
+              values={{ public: true }}
+            >
+              private
+            </Button>
+          );
+        }
+        if (scheduleData.saved) {
+          saveButton = (
+            <Button
+              className="schedule-button"
+              color="blue"
+              disabled={this.state.loading}
+              onClick={this.handleUpdate}
+              values={{ saved: false }}
+            >
+              saved
+            </Button>
+          );
+        } else {
+          saveButton = (
+            <Button
+              className="schedule-button"
+              disabled={this.state.loading}
               onClick={this.handleUpdate}
               values={{ saved: true }}
             >
-              save
+              not saved
             </Button>
           );
         }
@@ -256,16 +287,16 @@ class SchedulePage extends React.Component {
         editButton = (
           <Modal
             trigger={
-              <Button icon>
-                <Icon name="pencil" />
+              <Button icon className="schedule-button">
+                <Icon name="pencil" /> edit
               </Button>
             }
             size="tiny"
             title={schedule_name}
             description={scheduleData.description}
             onOpen={this.openEditModal}
-            onClose={this.closeEditModal}
-            open={this.state.editModalOpen}
+            onClose={this.closeModals}
+            open={this.state.openModal === "edit"}
           >
             <Modal.Header>Edit Schedule</Modal.Header>
             <Modal.Content>
@@ -286,7 +317,7 @@ class SchedulePage extends React.Component {
               </Form>
             </Modal.Content>
             <Modal.Actions>
-              <Button negative content="cancel" onClick={this.closeEditModal} />
+              <Button negative content="cancel" onClick={this.closeModals} />
               <Button
                 positive
                 content="save"
@@ -301,7 +332,63 @@ class SchedulePage extends React.Component {
             </Modal.Actions>
           </Modal>
         );
+        deleteButton = (
+          <>
+            <Button
+              className="schedule-button"
+              color="red"
+              content="delete"
+              onClick={this.openConfirmModal}
+            />
+            <Confirm
+              open={this.state.openModal === "delete-confirm"}
+              onCancel={this.closeModals}
+              onConfirm={this.handleDelete}
+              content="Are you sure you want to delete this schedule? You cannot undo this action."
+              confirmButton={
+                <Button
+                  primary={false}
+                  color="red"
+                  content="Delete"
+                  onClick={this.openConfirmModal}
+                  loading={this.state.loading}
+                  disabled={this.state.loading}
+                />
+              }
+            />
+          </>
+        );
+        loadButton = <Button content="load" className="schedule-button" />;
+        editButtonGroup = (
+          <>
+            {editButton}
+            {saveButton}
+            {publishButton}
+            {deleteButton}
+            {loadButton}
+          </>
+        );
       }
+
+      content = (
+        <ScheduleWidget
+          scheduleData={scheduleData}
+          details
+          topRightWidget={
+            canAccessTask && (
+              <RedirectButton
+                button={{
+                  content: "back to task",
+                  size: "tiny",
+                  compact: true,
+                  fluid: true
+                }}
+                redirect={{ to: `/task/${scheduleData.task}/` }}
+              />
+            )
+          }
+        />
+      );
     } else if (!error) {
       content = (
         <Placeholder>
@@ -321,11 +408,7 @@ class SchedulePage extends React.Component {
         {details !== null && (
           <Grid stackable verticalAlign="middle" style={{ marginBottom: 0 }}>
             <Grid.Column width={8}>{details}</Grid.Column>
-            <Grid.Column width={8}>
-              {editButton}
-              {saveUnsaveButton}
-              {setPublicButton}
-            </Grid.Column>
+            <Grid.Column width={8}>{editButtonGroup}</Grid.Column>
           </Grid>
         )}
         {message}
@@ -336,5 +419,6 @@ class SchedulePage extends React.Component {
 }
 
 export default connect(state => ({
-  tokens: state.user.tokens
+  tokens: state.user.tokens,
+  profile: state.user.profile
 }))(SchedulePage);

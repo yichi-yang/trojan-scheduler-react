@@ -10,7 +10,13 @@ import {
   Dropdown
 } from "semantic-ui-react";
 import { connect } from "react-redux";
-import { setUserTokens, setUserProfile, clearUserState } from "./actions";
+import {
+  setUserTokens,
+  setUserProfile,
+  clearUserState,
+  loadCoursebin,
+  loadPreferences
+} from "./actions";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import {
@@ -91,6 +97,11 @@ class LoginButton extends React.Component {
       .get(`/api/users/${user_id}/`, { cancelToken: source.token })
       .then(response => {
         this.props.setUserProfile(response.data);
+        return axios.get(`/api/task-data/${response.data.saved_task_data}/`);
+      })
+      .then(response => {
+        this.props.loadCoursebin(response.data.coursebin);
+        this.props.loadPreferences(response.data.preference);
       })
       .catch(error => {
         console.log(error);
@@ -230,5 +241,11 @@ export default connect(
     tokens: state.user.tokens,
     profile: state.user.profile
   }),
-  { setUserTokens, clearUserState, setUserProfile }
+  {
+    setUserTokens,
+    clearUserState,
+    setUserProfile,
+    loadCoursebin,
+    loadPreferences
+  }
 )(LoginButton);

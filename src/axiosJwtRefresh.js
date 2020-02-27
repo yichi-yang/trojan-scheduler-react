@@ -3,7 +3,7 @@ import createAuthRefreshInterceptor from "axios-auth-refresh";
 import { setUserTokens, clearUserState } from "./actions";
 import jwtDecode from "jwt-decode";
 
-const statusCodes = [401, 403];
+const statusCodes = [401];
 
 // Creates the function that will be called to refresh authorization
 const refreshAuthLogicCreator = store => failedRequest => {
@@ -17,6 +17,7 @@ const refreshAuthLogicCreator = store => failedRequest => {
       { skipAuthRefresh: true, NoJWT: true }
     )
     .then(tokenRefreshResponse => {
+      console.log("refresh token success");
       store.dispatch(setUserTokens(tokenRefreshResponse.data));
       return Promise.resolve();
     })
@@ -88,7 +89,7 @@ const errorFilter = error => {
       }
     }
   }
-  error.config.skipAuthRefresh = true;
+  if (error.config) error.config.skipAuthRefresh = true;
   return Promise.reject(error);
 };
 

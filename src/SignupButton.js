@@ -3,14 +3,24 @@ import { Button, Message, Modal, Form, Item } from "semantic-ui-react";
 import { connect } from "react-redux";
 import { setUserTokens, setUserProfile, clearUserState } from "./actions";
 import axios from "axios";
-import { error2message } from "./util";
 import AvatarSelect from "./AvatarSelect";
 import { avatarURL } from "./AvatarSelect";
 import "shortid";
 import shortid from "shortid";
+import {
+  errorFormatterCreator,
+  responseDataFormatter,
+  statusCodeFormatter,
+  str2para
+} from "./util";
 
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
+
+const errorFormatter = errorFormatterCreator(
+  responseDataFormatter,
+  statusCodeFormatter
+);
 
 const initState = {
   username: "",
@@ -84,7 +94,7 @@ class SignupButton extends React.Component {
       })
       .catch(error => {
         this.setState({
-          error: error2message(error, null, true),
+          error: errorFormatter(error),
           loading: false
         });
       });
@@ -106,7 +116,7 @@ class SignupButton extends React.Component {
       })
       .catch(error => {
         this.setState({
-          error: error2message(error, null, true),
+          error: errorFormatter(error),
           loading: false
         });
       });
@@ -138,11 +148,7 @@ class SignupButton extends React.Component {
       );
     }
     let message = error ? (
-      <Message error={Boolean(error)}>
-        {error.split("\n").map(line => (
-          <p key={line}>{line}</p>
-        ))}
-      </Message>
+      <Message error={Boolean(error)}>{str2para(error)}</Message>
     ) : null;
     if (page === "signup") {
       title = <Modal.Header>Sign Up</Modal.Header>;

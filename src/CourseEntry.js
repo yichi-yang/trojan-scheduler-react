@@ -41,7 +41,7 @@ class CourseEntry extends React.Component {
 
   removeHandler = e => {
     e.stopPropagation();
-    this.props.delete(this.props.course);
+    this.props.deleteCourse(this.props.course);
   };
 
   toggleIncludeHandler = e => {
@@ -76,8 +76,7 @@ class CourseEntry extends React.Component {
         <PartEntry {...part} forceExclude={this.props.exclude}></PartEntry>
       );
     }
-    let outdated =
-      new Date() - new Date(this.props.course_updated) > 10 * 60 * 1000;
+    let outdated = new Date() - new Date(this.props.updated) > 10 * 60 * 1000;
     let buttonInclude = this.props.exclude ? (
       <Button content="Include" onClick={this.toggleIncludeHandler} />
     ) : (
@@ -114,11 +113,7 @@ class CourseEntry extends React.Component {
             {this.props.numActive}
           </Label>
 
-          {outdated && (
-            <Label circular horizontal color="yellow">
-              <Icon name="warning" color="white" fitted></Icon>
-            </Label>
-          )}
+          {outdated && <Icon name="warning circle" color="yellow" size="large"></Icon>}
 
           <Button.Group size="mini" floated="right" compact>
             {buttonInclude}

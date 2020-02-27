@@ -1,28 +1,14 @@
 import React from "react";
-import { Label, Placeholder, Table, Message, Grid } from "semantic-ui-react";
+import { Label, Table, Message, Grid } from "semantic-ui-react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import { connect } from "react-redux";
 import Rainbow from "rainbowvis.js";
 import axios from "axios";
 import ShareButtons from "./ShareButtons";
 import {
-  errorFormatterCreator,
-  responseDataFormatter,
-  statusCodeFormatter,
-  noPermissionFormatter,
-  str2para,
   getScheduleName
 } from "./util";
 
-const CancelToken = axios.CancelToken;
-const source = CancelToken.source();
-
-const errorFormatter = errorFormatterCreator(
-  noPermissionFormatter("You cannot view this schedule because it is private."),
-  responseDataFormatter,
-  statusCodeFormatter
-);
 const localizer = momentLocalizer(moment);
 
 const rainbow = new Rainbow();
@@ -32,56 +18,29 @@ rainbow.setNumberRange(0, 1);
 class ScheduleWidget extends React.Component {
   constructor(props) {
     super(props);
-    if (!props.scheduleData && !props.schedule_id) {
-      this.state = { error: "no schedule id in props" };
-    } else {
-      this.state = { scheduleData: undefined };
-    }
+    this.cancelSource = axios.CancelToken.source();
   }
 
   weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-  componentDidMount() {
-    if (this.props.schedule_id) {
-      axios
-        .get(`/api/schedules/${this.props.schedule_id}/`, {
-          cancelToken: source.token
-        })
-        .then(response => {
-          this.setState({ scheduleData: response.data });
-        })
-        .catch(error => {
-          this.setState({ error: errorFormatter(error) });
-        });
-    }
-  }
 
   cost2HSL = cost => {
     return "#" + rainbow.colourAt(1 / (cost / 200 + 1));
   };
 
   componentWillUnmount() {
-    source.cancel("axios requests cancelled on unmount");
+    this.cancelSource.cancel("axios requests cancelled on unmount 2");
   }
 
   render() {
-    let scheduleData = null;
-    if (this.props.scheduleData) {
-      scheduleData = this.props.scheduleData;
-    } else {
-      scheduleData = this.state.scheduleData;
-    }
-    let content = "Nothing here...";
+    let { scheduleData } = this.props;
+
+    let content = null;
     if (!scheduleData) {
-      content = (
-        <Placeholder>
-          <Placeholder.Line />
-          <Placeholder.Line />
-        </Placeholder>
-      );
-    } else if (this.state.error) {
-      content = <Message error>{str2para(this.state.error)}</Message>;
-    } else if (scheduleData.sections) {
+      content = <Message error>No schedule data in props</Message>;
+    }
+    if (!scheduleData.sections) {
+      content = <Message info>Empty schedule</Message>;
+    } else {
       let events = [];
       let start_moments = [];
       let end_moments = [];
@@ -127,7 +86,7 @@ class ScheduleWidget extends React.Component {
       content = (
         <>
           <Grid stackable style={{ marginBottom: 0 }}>
-            <Grid.Column width={12} verticalAlign="middle">
+            <Grid.Column width={10} verticalAlign="middle">
               <Label.Group>
                 <Label
                   style={{
@@ -176,15 +135,25 @@ class ScheduleWidget extends React.Component {
                 </Label>
               </Label.Group>
             </Grid.Column>
-            <Grid.Column width={4} verticalAlign="middle" floated="right">
-              {scheduleData.public && (
+            {scheduleData.public && (
+              <Grid.Column
+                width={4}
+                verticalAlign="middle"
+                textAlign="right"
+                floated="right"
+              >
                 <ShareButtons
                   title={getScheduleName(scheduleData)}
-                  description=""
+                  description={getScheduleName(scheduleData)}
                   link={window.location.href}
                 />
-              )}
-            </Grid.Column>
+              </Grid.Column>
+            )}
+            {this.props.topRightWidget && (
+              <Grid.Column width={2} verticalAlign="middle" floated="right">
+                {this.props.topRightWidget}
+              </Grid.Column>
+            )}
           </Grid>
 
           <Calendar
@@ -235,6 +204,4 @@ class ScheduleWidget extends React.Component {
   }
 }
 
-export default connect(state => ({
-  tokens: state.user.tokens
-}))(ScheduleWidget);
+export default ScheduleWidget;

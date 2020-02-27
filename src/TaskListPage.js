@@ -24,6 +24,7 @@ class TaskListPage extends React.Component {
   }
 
   loadTaskData = () => {
+    console.log("load task list");
     axios
       .get(`/api/tasks/?page=${this.state.page}`)
       .then(response => {
@@ -38,10 +39,9 @@ class TaskListPage extends React.Component {
     if (!this.state.task_list) {
       this.loadTaskData();
     }
-    this.isLoggedIn = Boolean(this.props.tokens);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     let page = 1;
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
@@ -50,9 +50,7 @@ class TaskListPage extends React.Component {
     if (this.state.page !== page) {
       this.setState({ page }, this.loadTaskData);
     }
-    let isLoggedIn = Boolean(this.props.tokens);
-    if (isLoggedIn !== this.isLoggedIn) {
-      this.isLoggedIn = isLoggedIn;
+    if (Boolean(prevProps.tokens) !== Boolean(this.props.tokens)) {
       this.loadTaskData();
     }
   }

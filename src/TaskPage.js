@@ -8,6 +8,7 @@ import {
   Header
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
+import RedirectButton from "./RedirectButton";
 import moment from "moment";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -43,6 +44,7 @@ class TaskPage extends React.Component {
   }
 
   loadTaskData = () => {
+    console.log("load task");
     if (this.props.task_id) {
       axios
         .get(`/api/tasks/${this.props.task_id}/`)
@@ -59,13 +61,10 @@ class TaskPage extends React.Component {
     if (!this.state.taskData) {
       this.loadTaskData();
     }
-    this.isLoggedIn = Boolean(this.props.tokens);
   }
 
-  componentDidUpdate() {
-    let isLoggedIn = Boolean(this.props.tokens);
-    if (isLoggedIn !== this.isLoggedIn) {
-      this.isLoggedIn = isLoggedIn;
+  componentDidUpdate(prevProps) {
+    if (Boolean(prevProps.tokens) !== Boolean(this.props.tokens)) {
       this.setState({ taskData: null, error: null });
       this.loadTaskData();
     }
@@ -135,7 +134,20 @@ class TaskPage extends React.Component {
                     </Accordion.Title>
                     {selected === schedule.id && (
                       <Accordion.Content active>
-                        <ScheduleWidget scheduleData={schedule} />
+                        <ScheduleWidget
+                          scheduleData={schedule}
+                          topRightWidget={
+                            <RedirectButton
+                              button={{
+                                content: "more details",
+                                size: "tiny",
+                                compact: true,
+                                fluid: true
+                              }}
+                              redirect={{ to: `/schedule/${schedule.id}/` }}
+                            />
+                          }
+                        />
                       </Accordion.Content>
                     )}
                   </React.Fragment>

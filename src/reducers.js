@@ -16,7 +16,9 @@ import {
   clearUserState,
   setGroupCourse,
   resetCourseGroup,
-  startGroupFromOne
+  startGroupFromOne,
+  loadCoursebin,
+  loadPreferences
 } from "./actions";
 import { transformCourse } from "./util";
 
@@ -127,6 +129,10 @@ export const courseReducer = createReducer([], {
         .filter(node => prevChildren.includes(node.parent))
         .map(node => node.node_id);
     } while (children.length > 0);
+  },
+  [loadCoursebin]: (state, action) => {
+    let coursebin = action.payload;
+    if (coursebin !== null) return coursebin;
   }
 });
 
@@ -169,6 +175,10 @@ export const preferenceReducer = createReducer(
     [removeReservedSlot]: (state, action) => {
       let toRemove = action.payload;
       state.reserved = state.reserved.filter(r => !toRemove.includes(r.key));
+    },
+    [loadPreferences]: (state, action) => {
+      let preference = action.payload;
+      if (preference !== null) return preference;
     }
   }
 );

@@ -3,10 +3,10 @@ import {
   Container,
   Form,
   Accordion,
-  Message,
   Segment,
   Header,
-  Icon
+  Icon,
+  Message
 } from "semantic-ui-react";
 import CourseEntry from "./CourseEntry";
 import {
@@ -14,94 +14,179 @@ import {
   setIncludeCourse,
   setGroupCourse,
   resetCourseGroup,
-  startGroupFromOne
+  startGroupFromOne,
+  setUserProfile,
+  loadCoursebin,
+  loadPreferences
 } from "./actions";
 import { connect } from "react-redux";
-import shortid from "shortid";
 import axios from "axios";
+import { termOptions, defaultTerm } from "./settings";
+import {
+  errorFormatterCreator,
+  responseDataFormatter,
+  statusCodeFormatter
+} from "./util";
+import { toast } from "react-semantic-toasts";
+
+const errorFormatter = errorFormatterCreator(
+  responseDataFormatter,
+  statusCodeFormatter
+);
 
 class CoursebinWidget extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loading: [],
-      message: [],
-      term: "",
+      loadingCourses: [],
+      term: defaultTerm,
       course: "",
-      toolsOpen: true,
+      toolsOpen: false,
       assignGroup: false,
-      newGroupId: null
+      newGroupId: null,
+      loading: []
     };
+    this.cancelSource = axios.CancelToken.source();
   }
 
   addLoading = course => {
-    if (!this.state.loading.includes(course)) {
-      this.setStateAsync(state => ({
+    if (!this.state.loadingCourses.includes(course)) {
+      this.setState(state => ({
         ...state,
-        loading: state.loading.concat(course)
+        loadingCourses: state.loadingCourses.concat(course)
       }));
     }
   };
 
   removeLoading = course => {
-    this.setStateAsync(state => ({
-      ...state,
-      loading: state.loading.filter(item => item !== course)
+    this.setState(state => ({
+      loadingCourses: state.loadingCourses.filter(item => item !== course)
     }));
   };
 
-  handleSubmit() {
-    let course = this.state.course.trim().toLowerCase();
-    let term = this.state.term.trim();
-    if (!term || !course) {
-      this.displayMessage({
-        content: '"Term" and "Course" must not be empty.',
-        error: true
-      });
-      return;
-    } else if (this.state.loading.includes(course)) {
-      this.displayMessage({
-        content: course.toUpperCase() + " is loading.",
-        warning: true
-      });
-      return;
-    }
+  fetchCourse = (course, term) => {
     this.addLoading(course);
-    axios
-      .put(`/api/courses/${term}/${course}/`, {})
+    return axios
+      .put(
+        `/api/courses/${term}/${course}/`,
+        {},
+        { cancelToken: this.cancelSource.token }
+      )
       .then(response => {
         this.removeLoading(course);
         this.props.addCourse(response.data);
       })
       .catch(error => {
         this.removeLoading(course);
-        this.displayMessage({
-          content: `${error.message} (${course})`,
-          error: true
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Cannot Load ${course.toUpperCase()}`,
+          description: errorFormatter(error),
+          time: 10000
         });
       });
+  };
+
+  handleFetchCourse() {
+    let course = this.state.course.trim().toLowerCase();
+    let term = this.state.term.trim();
+    if (!term || !course || this.state.loadingCourses.includes(course)) {
+      return;
+    }
+    this.fetchCourse(course, term);
   }
+
+  handleRefreshAll = () => {
+    this.setState(state => ({
+      loading: state.loading.concat("refresh")
+    }));
+    Promise.allSettled(
+      this.props.courses
+        .filter(course => new Date() - new Date(course.updated) > 5 * 60 * 1000)
+        .map(course => this.fetchCourse(course.course, course.term))
+    ).then(() => {
+      this.setState(state => ({
+        loading: state.loading.filter(item => item !== "refresh")
+      }));
+    });
+  };
+
+  handleSaveCoursebin = () => {
+    let { profile } = this.props;
+    if (!profile || !profile.saved_task_data) {
+      console.log("No account.");
+      return;
+    }
+    this.setState(state => ({
+      loading: state.loading.concat("save")
+    }));
+    axios
+      .patch(
+        `/api/task-data/${profile.saved_task_data}/`,
+        {
+          coursebin: this.props.coursebin,
+          preference: this.props.preference
+        },
+        { cancelToken: this.cancelSource.token }
+      )
+      .then(response => {
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== "save")
+        }));
+        this.props.setUserProfile(response.data);
+      })
+      .catch(error => {
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Save Settings`,
+          description: errorFormatter(error),
+          time: 10000
+        });
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== "save")
+        }));
+      });
+  };
+
+  handleLoadCoursebin = () => {
+    let { profile } = this.props;
+    if (!profile || !profile.saved_task_data) {
+      console.log("No account.");
+      return;
+    }
+    this.setState(state => ({
+      loading: state.loading.concat("load")
+    }));
+    axios
+      .get(`/api/task-data/${profile.saved_task_data}/`, {
+        cancelToken: this.cancelSource.token
+      })
+      .then(response => {
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== "load")
+        }));
+        this.props.loadCoursebin(response.data.coursebin);
+        this.props.loadPreferences(response.data.preference);
+      })
+      .catch(error => {
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Load Settings`,
+          description: errorFormatter(error),
+          time: 10000
+        });
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== "load")
+        }));
+      });
+  };
 
   handleChange(e, { name, value }) {
     this.setState({ [name]: value });
   }
-
-  displayMessage = message => {
-    let messageId = shortid.generate();
-    message.key = messageId;
-    this.setStateAsync(state => ({
-      ...state,
-      message: state.message.concat(message)
-    }));
-    setTimeout(() => this.removeMessage(messageId), 10000);
-  };
-
-  removeMessage = messageId => {
-    this.setStateAsync(state => ({
-      ...state,
-      message: state.message.filter(message => message.key !== messageId)
-    }));
-  };
 
   toggleToolSegment = () => {
     this.setState({ toolsOpen: !this.state.toolsOpen });
@@ -113,29 +198,13 @@ class CoursebinWidget extends React.Component {
     };
   };
 
-  setStateAsync = (arg, callback) => {
-    if (this._mounted) {
-      this.setState(arg, callback);
-    }
-  };
-
-  componentDidMount = () => {
-    this._mounted = true;
-  };
-
-  componentWillUnmount = () => {
-    this._mounted = false;
-  };
+  componentWillUnmount() {
+    this.cancelSource.cancel("axios requests cancelled on coursebin unmount");
+  }
 
   render() {
-    let groupOptions = [
-      ...new Set(
-        this.props.children
-          .filter(node => !node.loading)
-          .map(node => node.group)
-      )
-    ];
-    let courseEntries = this.props.children.map(course => (
+    let groupOptions = [...new Set(this.props.courses.map(node => node.group))];
+    let courseEntries = this.props.courses.map(course => (
       <CourseEntry
         assignGroup={this.state.assignGroup}
         assignGroupHandler={this.setGroupHandlerCreator(this.state.newGroupId)}
@@ -143,33 +212,39 @@ class CoursebinWidget extends React.Component {
         {...course}
       />
     ));
-    let loadingCourses = this.state.loading.map(course => (
-      <CourseEntry course={course} loading key={course} />
-    ));
+    let loadingCourseMessage = this.state.loadingCourses.length ? (
+      <Message
+        info
+        content={`Loading courses: ${this.state.loadingCourses
+          .map(str => str.toUpperCase())
+          .join(", ")}`}
+      />
+    ) : null;
 
-    if (this.props.children.length === 0 && this.state.loading.length === 0) {
+    if (
+      this.props.courses.length === 0
+    ) {
       courseEntries = (
         <>
           <Accordion.Title active>Empty</Accordion.Title>
         </>
       );
     }
-    let messages = this.state.message.map(message => (
-      <Message {...message}></Message>
-    ));
     return (
       <Container>
         <Segment.Group>
           <Segment>
             <Header>Add Course</Header>
-            <Form onSubmit={e => this.handleSubmit(e)}>
+            <Form onSubmit={e => this.handleFetchCourse(e)}>
               <Form.Group inline>
-                <Form.Input
-                  placeholder="Term"
+                <Form.Select
                   name="term"
                   value={this.state.term}
+                  options={termOptions}
                   onChange={(e, props) => this.handleChange(e, props)}
                   width={6}
+                  selection
+                  style={{ width: "100%" }}
                 />
                 <Form.Input
                   placeholder="Course"
@@ -178,7 +253,12 @@ class CoursebinWidget extends React.Component {
                   onChange={(e, props) => this.handleChange(e, props)}
                   width={6}
                 />
-                <Form.Button content="Submit" width={4} fluid />
+                <Form.Button
+                  content="Submit"
+                  width={4}
+                  fluid
+                  disabled={!this.state.course}
+                />
               </Form.Group>
             </Form>
           </Segment>
@@ -199,58 +279,38 @@ class CoursebinWidget extends React.Component {
                 style={{ marginTop: "14px" }}
               >
                 <Form>
-                  <Form.Group inline>
+                  <Form.Group>
                     <Form.Button
                       content="Save"
                       fluid
-                      onClick={() => this.props.resetCourseGroup()}
+                      onClick={this.handleSaveCoursebin}
+                      loading={this.state.loading.includes("save")}
+                      disabled={this.state.loading.includes("save")}
+                      width={3}
                     />
                     <Form.Button
                       content="Load"
                       fluid
-                      onClick={() => this.props.startGroupFromOne()}
+                      onClick={this.handleLoadCoursebin}
+                      loading={this.state.loading.includes("load")}
+                      disabled={this.state.loading.includes("load")}
+                      width={3}
                     />
                     <Form.Button
                       content="Refresh All"
                       fluid
-                      onClick={() => this.props.setIncludeCourse(true)}
+                      loading={this.state.loading.includes("refresh")}
+                      disabled={this.state.loading.includes("refresh")}
+                      onClick={this.handleRefreshAll}
+                      width={3}
                     />
                   </Form.Group>
-                  <Form.Group inline widths="equal">
-                    <Form.Button
-                      content="Reset Groups"
-                      fluid
-                      onClick={() => this.props.resetCourseGroup()}
-                    />
-                    <Form.Button
-                      content="Start from 1"
-                      fluid
-                      onClick={() => this.props.startGroupFromOne()}
-                    />
-                    <Form.Button
-                      content="Select All"
-                      fluid
-                      onClick={() => this.props.setIncludeCourse(true)}
-                    />
-                    <Form.Button
-                      content="Deselect All"
-                      fluid
-                      onClick={() => this.props.setIncludeCourse(false)}
-                    />
-                    <Form.Button
-                      content="Penalize All"
-                      fluid
-                      onClick={() => this.props.setIncludeCourse(true)}
-                    />
-                    <Form.Button
-                      content="Exempt All"
-                      fluid
-                      onClick={() => this.props.setIncludeCourse(false)}
-                    />
-                  </Form.Group>
+                  <Form.Field style={{ margin: 0 }}>
+                    <label>Cleared sections</label>
+                  </Form.Field>
                   <Form.Group inline>
                     <Form.Input
-                      placeholder="cleared sections"
+                      placeholder="csci-201, csci-201.lab, 29979, etc."
                       fluid
                       width={10}
                     />
@@ -263,9 +323,12 @@ class CoursebinWidget extends React.Component {
                       width={2}
                     />
                   </Form.Group>
+                  <Form.Field style={{ margin: 0 }}>
+                    <label>Exempted courses, components, or sections</label>
+                  </Form.Field>
                   <Form.Group inline>
                     <Form.Input
-                      placeholder="cleared sections"
+                      placeholder="math-407, quiz, 29979, etc."
                       fluid
                       width={14}
                     />
@@ -283,15 +346,11 @@ class CoursebinWidget extends React.Component {
 
           <Segment>
             <Header>Coursebin</Header>
+            {loadingCourseMessage}
             <Accordion styled fluid exclusive={false}>
               {courseEntries}
-              {loadingCourses}
             </Accordion>
           </Segment>
-
-          {this.state.message.length > 0 && (
-            <Segment>{messages.reverse()}</Segment>
-          )}
         </Segment.Group>
       </Container>
     );
@@ -300,20 +359,25 @@ class CoursebinWidget extends React.Component {
 
 export default connect(
   state => ({
-    children: state.course
+    courses: state.course
       .filter(node => node.type === "course")
       .sort((a, b) =>
         a.group !== b.group
           ? a.group - b.group
           : a.node_id.localeCompare(b.node_id)
       ),
-    messages: state.message
+    coursebin: state.course,
+    preference: state.preference,
+    profile: state.user.profile
   }),
   {
     addCourse,
     setIncludeCourse,
     setGroupCourse,
     resetCourseGroup,
-    startGroupFromOne
+    startGroupFromOne,
+    setUserProfile,
+    loadCoursebin,
+    loadPreferences
   }
 )(CoursebinWidget);

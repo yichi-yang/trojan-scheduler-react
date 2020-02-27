@@ -18,6 +18,8 @@ import LoginButton from "./LoginButton";
 import SignupButton from "./SignupButton";
 import TaskListPage from "./TaskListPage";
 import ScheduleListPage from "./ScheduleListPage";
+import { SemanticToastContainer } from 'react-semantic-toasts';
+import 'react-semantic-toasts/styles/react-semantic-alert.css';
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -168,6 +170,7 @@ class Scheduler extends React.Component {
             </List>
           </Container>
         </Segment>
+        <SemanticToastContainer position="bottom-right"/>
       </div>
     );
   }

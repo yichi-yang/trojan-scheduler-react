@@ -20,6 +20,12 @@ class ResultsWidget extends React.Component {
     this.state = { taskName: "" };
   }
 
+  getDescription = coursebin =>
+    coursebin
+      .filter(node => node.type === "course" && !node.exclude)
+      .map(node => node.course)
+      .join(", ");
+
   handleSend = () => {
     this.props.saveTaskResult(null);
     this.setState({ error: null, loading: true });
@@ -27,7 +33,8 @@ class ResultsWidget extends React.Component {
       .post("/api/tasks/", {
         coursebin: this.props.coursebin,
         preference: this.props.preference,
-        name: this.state.taskName
+        name: this.state.taskName,
+        description: this.getDescription(this.props.coursebin)
       })
       .then(response => {
         let { data } = response;
@@ -55,9 +62,11 @@ class ResultsWidget extends React.Component {
         let { data } = response;
         this.props.saveTaskResult(data);
         if (data.status === "PD" || data.status === "PS") {
-          this.pollTask(data.id, null, 500);
           if (ttl !== null && ttl <= 0) {
-            this.setState({ error: "Timeout" });
+            this.setState({
+              error:
+                "It's taking a bit longer than expected... Refresh page to get update."
+            });
           } else {
             setTimeout(
               this.pollTask,
@@ -74,6 +83,13 @@ class ResultsWidget extends React.Component {
       .catch(error => {
         this.setState({ error: error.message, loading: false });
       });
+  };
+
+  componentDidMount = () => {
+    if (this.props.result && ["PD", "PS"].includes(this.props.result.status)) {
+      this.setState({ loading: true });
+      this.pollTask(this.props.result.id, 5, 1000);
+    }
   };
 
   render() {
