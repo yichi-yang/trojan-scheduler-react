@@ -12,12 +12,27 @@ import { Redirect } from "react-router-dom";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { saveTaskResult } from "./actions";
 import axios from "axios";
-import { error2message } from "./util";
+import {
+  errorFormatterCreator,
+  responseDataFormatter,
+  statusCodeFormatter,
+  customMessageFormatter
+} from "./util";
+import { toast } from "react-semantic-toasts";
+
+const errorFormatter = errorFormatterCreator(
+  customMessageFormatter("Your session has expired. Log in to continue.", [
+    401
+  ]),
+  responseDataFormatter,
+  statusCodeFormatter
+);
 
 class ResultsWidget extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { taskName: "" };
+    this.state = { error: null };
+    this.cancelSource = axios.CancelToken.source();
   }
 
   getDescription = coursebin =>
@@ -30,12 +45,16 @@ class ResultsWidget extends React.Component {
     this.props.saveTaskResult(null);
     this.setState({ error: null, loading: true });
     axios
-      .post("/api/tasks/", {
-        coursebin: this.props.coursebin,
-        preference: this.props.preference,
-        name: this.state.taskName,
-        description: this.getDescription(this.props.coursebin)
-      })
+      .post(
+        "/api/tasks/",
+        {
+          coursebin: this.props.coursebin,
+          preference: this.props.preference,
+          name: this.state.taskName,
+          description: this.getDescription(this.props.coursebin)
+        },
+        { cancelToken: this.cancelSource.token }
+      )
       .then(response => {
         let { data } = response;
         this.props.saveTaskResult(data);
@@ -45,8 +64,14 @@ class ResultsWidget extends React.Component {
       })
       .catch(error => {
         this.setState({
-          error: error2message(error, null, true),
           loading: false
+        });
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Create Schedules`,
+          list: errorFormatter(error).split("\n"),
+          time: 10000
         });
       });
   };
@@ -57,7 +82,7 @@ class ResultsWidget extends React.Component {
 
   pollTask = (id, ttl, delay) => {
     axios
-      .get(`/api/tasks/${id}/`)
+      .get(`/api/tasks/${id}/`, { cancelToken: this.cancelSource.token })
       .then(response => {
         let { data } = response;
         this.props.saveTaskResult(data);
@@ -81,7 +106,14 @@ class ResultsWidget extends React.Component {
         }
       })
       .catch(error => {
-        this.setState({ error: error.message, loading: false });
+        this.setState({ loading: false });
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Create Schedules`,
+          list: errorFormatter(error).split("\n"),
+          time: 10000
+        });
       });
   };
 
@@ -91,6 +123,10 @@ class ResultsWidget extends React.Component {
       this.pollTask(this.props.result.id, 5, 1000);
     }
   };
+
+  componentWillUnmount() {
+    this.cancelSource.cancel("axios requests cancelled on result page unmount");
+  }
 
   render() {
     let { error, loading } = this.state;

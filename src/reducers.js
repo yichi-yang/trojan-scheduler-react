@@ -21,7 +21,8 @@ import {
   loadPreferences,
   editSetting,
   filterPenalize,
-  filterSelection
+  filterSelection,
+  loadSetting
 } from "./actions";
 import { transformCourse } from "./util";
 import { defaultTerm } from "./settings";
@@ -291,6 +292,10 @@ export const settingReducer = createReducer(
       if (state.hasOwnProperty(name)) {
         state[name] = value;
       }
+    },
+    [loadSetting]: (state, action) => {
+      let setting = action.payload;
+      if (setting !== null) return setting;
     }
   }
 );
@@ -300,5 +305,5 @@ export const allReducers = combineReducers({
   preference: preferenceReducer,
   task_result: taskResultReducer,
   user: userReducer,
-  settings: settingReducer
+  setting: settingReducer
 });

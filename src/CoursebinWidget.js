@@ -7,7 +7,9 @@ import {
   Header,
   Icon,
   Message,
-  Transition
+  Transition,
+  Popup,
+  Button
 } from "semantic-ui-react";
 import CourseEntry from "./CourseEntry";
 import {
@@ -18,7 +20,8 @@ import {
   loadPreferences,
   editSetting,
   filterSelection,
-  filterPenalize
+  filterPenalize,
+  loadSetting
 } from "./actions";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -87,15 +90,15 @@ class CoursebinWidget extends React.Component {
           type: "error",
           icon: "times",
           title: `Cannot Load ${course.toUpperCase()}`,
-          description: errorFormatter(error),
+          list: errorFormatter(error).split("\n"),
           time: 10000
         });
       });
   };
 
   handleFetchCourse() {
-    let course = this.props.settings.course.trim().toLowerCase();
-    let term = this.props.settings.term;
+    let course = this.props.setting.course.trim().toLowerCase();
+    let term = this.props.setting.term;
     if (!term || !course || this.state.loadingCourses.includes(course)) {
       return;
     }
@@ -133,7 +136,8 @@ class CoursebinWidget extends React.Component {
         `/api/task-data/${profile.saved_task_data}/`,
         {
           coursebin: this.props.coursebin,
-          preference: this.props.preference
+          preference: this.props.preference,
+          setting: this.props.setting
         },
         { cancelToken: this.cancelSource.token }
       )
@@ -154,7 +158,7 @@ class CoursebinWidget extends React.Component {
           type: "error",
           icon: "times",
           title: `Failed to Save Settings`,
-          description: errorFormatter(error),
+          list: errorFormatter(error).split("\n"),
           time: 10000
         });
         this.setState(state => ({
@@ -182,6 +186,7 @@ class CoursebinWidget extends React.Component {
         }));
         this.props.loadCoursebin(response.data.coursebin);
         this.props.loadPreferences(response.data.preference);
+        this.props.loadSetting(response.data.setting);
         toast({
           type: "success",
           icon: "cloud download",
@@ -223,12 +228,12 @@ class CoursebinWidget extends React.Component {
   };
 
   handleFilterSelection = () => {
-    let { clearedSections, clearedOnly, excludeClosed } = this.props.settings;
+    let { clearedSections, clearedOnly, excludeClosed } = this.props.setting;
     this.props.filterSelection({ clearedOnly, clearedSections, excludeClosed });
   };
 
   handleFilterPenalize = () => {
-    let { exemptedSections } = this.props.settings;
+    let { exemptedSections } = this.props.setting;
     this.props.filterPenalize(exemptedSections);
   };
 
@@ -245,7 +250,7 @@ class CoursebinWidget extends React.Component {
       clearedOnly,
       excludeClosed,
       exemptedSections
-    } = this.props.settings;
+    } = this.props.setting;
 
     let groupOptions = [...new Set(this.props.courses.map(node => node.group))];
     let courseEntries = this.props.courses.map(course => (
@@ -275,6 +280,21 @@ class CoursebinWidget extends React.Component {
 
     let canRefresh = this.props.courses.filter(this.needRefresh).length > 0;
 
+    let courseSuggestion = null;
+    let correctCourseFormat = false;
+    if (course.length !== 0) {
+      let match = course.match(/([a-zA-Z]{2,4})([\W_]*)(\d{1,3}[a-zA-Z]{0,1})/);
+      if (match) {
+        if (match[2] !== "-") {
+          courseSuggestion = match[1] + "-" + match[3];
+        } else {
+          correctCourseFormat = true;
+        }
+      }
+    } else {
+      correctCourseFormat = true;
+    }
+
     return (
       <Container>
         <Segment.Group>
@@ -291,13 +311,39 @@ class CoursebinWidget extends React.Component {
                   selection
                   style={{ width: "100%" }}
                 />
-                <Form.Input
-                  placeholder="Course"
-                  name="course"
-                  value={course}
-                  onChange={this.handleSettingChange}
-                  width={6}
-                />
+                <Popup
+                  open={Boolean(courseSuggestion)}
+                  position="top center"
+                  trigger={
+                    <Form.Input
+                      placeholder="Course"
+                      name="course"
+                      value={course}
+                      onChange={this.handleSettingChange}
+                      width={6}
+                      error={!correctCourseFormat}
+                    />
+                  }
+                >
+                  Do you mean{" "}
+                  <Button
+                    style={{
+                      backgroundColor: "#0000",
+                      padding: "0 0.5em",
+                      textDecoration: "underline"
+                    }}
+                    onClick={e => {
+                      e.preventDefault();
+                      this.props.editSetting({
+                        name: "course",
+                        value: courseSuggestion
+                      });
+                    }}
+                  >
+                    {courseSuggestion}
+                  </Button>
+                  ?
+                </Popup>
                 <Form.Button
                   content="Submit"
                   width={4}
@@ -454,7 +500,7 @@ export default connect(
     coursebin: state.course,
     preference: state.preference,
     profile: state.user.profile,
-    settings: state.settings
+    setting: state.setting
   }),
   {
     addCourse,
@@ -464,6 +510,7 @@ export default connect(
     loadPreferences,
     editSetting,
     filterSelection,
-    filterPenalize
+    filterPenalize,
+    loadSetting
   }
 )(CoursebinWidget);

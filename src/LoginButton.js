@@ -15,7 +15,8 @@ import {
   setUserProfile,
   clearUserState,
   loadCoursebin,
-  loadPreferences
+  loadPreferences,
+  loadSetting
 } from "./actions";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
@@ -23,13 +24,15 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  str2para
+  str2para,
+  customMessageFormatter
 } from "./util";
 
-const CancelToken = axios.CancelToken;
-const source = CancelToken.source();
-
 const errorFormatter = errorFormatterCreator(
+  customMessageFormatter("Your session has expired. Log in to continue.", [
+    401
+  ]),
+  customMessageFormatter,
   responseDataFormatter,
   statusCodeFormatter
 );
@@ -44,6 +47,7 @@ class LoginButton extends React.Component {
       loadingLogin: false,
       modalOpen: false
     };
+    this.cancelSource = axios.CancelToken.source();
   }
 
   handleStateChange = (event, { name, value }) => {
@@ -63,7 +67,11 @@ class LoginButton extends React.Component {
           username,
           password
         },
-        { skipAuthRefresh: true, cancelToken: source.token, NoJWT: true }
+        {
+          skipAuthRefresh: true,
+          cancelToken: this.cancelSource.token,
+          NoJWT: true
+        }
       )
       .then(response => {
         let { data } = response;
@@ -94,7 +102,7 @@ class LoginButton extends React.Component {
     }
     let { user_id } = jwtDecode(tokens.access);
     axios
-      .get(`/api/users/${user_id}/`, { cancelToken: source.token })
+      .get(`/api/users/${user_id}/`, { cancelToken: this.cancelSource.token })
       .then(response => {
         this.props.setUserProfile(response.data);
         return axios.get(`/api/task-data/${response.data.saved_task_data}/`);
@@ -102,6 +110,7 @@ class LoginButton extends React.Component {
       .then(response => {
         this.props.loadCoursebin(response.data.coursebin);
         this.props.loadPreferences(response.data.preference);
+        this.props.loadSetting(response.data.setting);
       })
       .catch(error => {
         console.log(error);
@@ -131,7 +140,9 @@ class LoginButton extends React.Component {
   componentDidUpdate() {}
 
   componentWillUnmount() {
-    source.cancel("axios requests cancelled on unmount");
+    this.cancelSource.cancel(
+      "axios requests cancelled on login button unmount"
+    );
   }
 
   render() {
@@ -246,6 +257,7 @@ export default connect(
     clearUserState,
     setUserProfile,
     loadCoursebin,
-    loadPreferences
+    loadPreferences,
+    loadSetting
   }
 )(LoginButton);

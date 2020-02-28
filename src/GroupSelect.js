@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Button, Label, Form } from "semantic-ui-react";
+import { Modal, Button, Label, Form, Responsive } from "semantic-ui-react";
 import { num2color } from "./CourseEntry";
 import { setGroupCourse } from "./actions";
 import { connect } from "react-redux";
@@ -77,7 +77,23 @@ class GroupSelect extends React.Component {
       <Modal
         trigger={
           <Label.Detail as="a" onClick={this.open}>
-            group {this.props.currentGroup}
+            <Responsive
+              as="span"
+              content="Exempt"
+              onClick={this.togglePenaltyHandler}
+              minWidth={400}
+            >
+              group
+            </Responsive>
+            <Responsive
+              as="span"
+              content="Exempt"
+              onClick={this.togglePenaltyHandler}
+              maxWidth={399}
+            >
+              #
+            </Responsive>
+            {this.props.currentGroup}
           </Label.Detail>
         }
         open={this.state.open}

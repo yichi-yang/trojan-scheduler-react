@@ -1,5 +1,13 @@
 import React from "react";
-import { Accordion, Icon, Button, Label, Loader } from "semantic-ui-react";
+import {
+  Accordion,
+  Icon,
+  Button,
+  Label,
+  Loader,
+  Responsive,
+  Popup
+} from "semantic-ui-react";
 import PartEntry from "./PartEntry";
 import { connect } from "react-redux";
 import {
@@ -91,9 +99,19 @@ class CourseEntry extends React.Component {
       <Button content="Exclude" onClick={this.toggleIncludeHandler} />
     );
     let buttonPenalize = this.props.exempt ? (
-      <Button content="Penalize" onClick={this.togglePenaltyHandler} />
+      <Responsive
+        as={Button}
+        content="Penalize"
+        onClick={this.togglePenaltyHandler}
+        minWidth={480}
+      />
     ) : (
-      <Button content="Exempt" onClick={this.togglePenaltyHandler} />
+      <Responsive
+        as={Button}
+        content="Exempt"
+        onClick={this.togglePenaltyHandler}
+        minWidth={480}
+      />
     );
     return (
       <>
@@ -102,14 +120,23 @@ class CourseEntry extends React.Component {
           onClick={this.toggleActive}
           node_id={this.props.node_id}
         >
-          <Icon name="dropdown" />
+          <Responsive as={Icon} name="dropdown" minWidth={330} />
           <Label
             basic={this.props.exclude}
             color={num2color(this.props.group)}
             horizontal
           >
             {this.props.course}
-            {this.props.exclude ? " (excluded)" : null}
+            {this.props.exclude ? (
+              <Responsive
+                as="span"
+                content="Exempt"
+                onClick={this.togglePenaltyHandler}
+                minWidth={550}
+              >
+                (excluded)
+              </Responsive>
+            ) : null}
             <GroupSelect
               options={this.props.groupOptions}
               currentGroup={this.props.group}
@@ -118,11 +145,19 @@ class CourseEntry extends React.Component {
           </Label>
 
           {this.state.emptyComponent && (
-            <Icon name="times circle" color="red" size="large"></Icon>
+            <Popup
+              content="At least one component does not have any section selected."
+              trigger={<Icon name="times circle" color="red" size="large" />}
+            />
           )}
 
           {outdated && (
-            <Icon name="warning circle" color="yellow" size="large"></Icon>
+            <Popup
+              content="This course is fetched at least 10 minutes ago. The information might not be up to date."
+              trigger={
+                <Icon name="warning circle" color="yellow" size="large" />
+              }
+            />
           )}
 
           <Button.Group size="mini" floated="right" compact>

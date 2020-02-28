@@ -21,3 +21,4 @@ export const setUserTokens = createAction("user/setToken");
 export const setUserProfile = createAction("user/setProfile");
 export const clearUserState = createAction("user/clear");
 export const editSetting = createAction("setting/edit");
+export const loadSetting = createAction("setting/load");
