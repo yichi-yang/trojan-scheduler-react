@@ -6,18 +6,19 @@ import {
   Segment,
   Header,
   Icon,
-  Message
+  Message,
+  Transition
 } from "semantic-ui-react";
 import CourseEntry from "./CourseEntry";
 import {
   addCourse,
   setIncludeCourse,
   setGroupCourse,
-  resetCourseGroup,
-  startGroupFromOne,
-  setUserProfile,
   loadCoursebin,
-  loadPreferences
+  loadPreferences,
+  editSetting,
+  filterSelection,
+  filterPenalize
 } from "./actions";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -25,11 +26,15 @@ import { termOptions, defaultTerm } from "./settings";
 import {
   errorFormatterCreator,
   responseDataFormatter,
-  statusCodeFormatter
+  statusCodeFormatter,
+  customMessageFormatter
 } from "./util";
 import { toast } from "react-semantic-toasts";
 
 const errorFormatter = errorFormatterCreator(
+  customMessageFormatter("Your session has expired. Log in to continue.", [
+    401
+  ]),
   responseDataFormatter,
   statusCodeFormatter
 );
@@ -89,8 +94,8 @@ class CoursebinWidget extends React.Component {
   };
 
   handleFetchCourse() {
-    let course = this.state.course.trim().toLowerCase();
-    let term = this.state.term.trim();
+    let course = this.props.settings.course.trim().toLowerCase();
+    let term = this.props.settings.term;
     if (!term || !course || this.state.loadingCourses.includes(course)) {
       return;
     }
@@ -103,7 +108,7 @@ class CoursebinWidget extends React.Component {
     }));
     Promise.allSettled(
       this.props.courses
-        .filter(course => new Date() - new Date(course.updated) > 5 * 60 * 1000)
+        .filter(this.needRefresh)
         .map(course => this.fetchCourse(course.course, course.term))
     ).then(() => {
       this.setState(state => ({
@@ -111,6 +116,8 @@ class CoursebinWidget extends React.Component {
       }));
     });
   };
+
+  needRefresh = course => new Date() - new Date(course.updated) > 5 * 60 * 1000;
 
   handleSaveCoursebin = () => {
     let { profile } = this.props;
@@ -134,7 +141,13 @@ class CoursebinWidget extends React.Component {
         this.setState(state => ({
           loading: state.loading.filter(item => item !== "save")
         }));
-        this.props.setUserProfile(response.data);
+        toast({
+          type: "success",
+          icon: "cloud upload",
+          title: "Settings Saved",
+          description: "Successfully saved your settings.",
+          time: 10000
+        });
       })
       .catch(error => {
         toast({
@@ -169,6 +182,13 @@ class CoursebinWidget extends React.Component {
         }));
         this.props.loadCoursebin(response.data.coursebin);
         this.props.loadPreferences(response.data.preference);
+        toast({
+          type: "success",
+          icon: "cloud download",
+          title: "Settings Loaded",
+          description: "Successfully loaded your settings.",
+          time: 10000
+        });
       })
       .catch(error => {
         toast({
@@ -188,6 +208,10 @@ class CoursebinWidget extends React.Component {
     this.setState({ [name]: value });
   }
 
+  handleSettingChange = (e, { name, value }) => {
+    this.props.editSetting({ name, value });
+  };
+
   toggleToolSegment = () => {
     this.setState({ toolsOpen: !this.state.toolsOpen });
   };
@@ -198,11 +222,31 @@ class CoursebinWidget extends React.Component {
     };
   };
 
+  handleFilterSelection = () => {
+    let { clearedSections, clearedOnly, excludeClosed } = this.props.settings;
+    this.props.filterSelection({ clearedOnly, clearedSections, excludeClosed });
+  };
+
+  handleFilterPenalize = () => {
+    let { exemptedSections } = this.props.settings;
+    this.props.filterPenalize(exemptedSections);
+  };
+
   componentWillUnmount() {
     this.cancelSource.cancel("axios requests cancelled on coursebin unmount");
   }
 
   render() {
+    let {
+      term,
+      course,
+      toolsOpen,
+      clearedSections,
+      clearedOnly,
+      excludeClosed,
+      exemptedSections
+    } = this.props.settings;
+
     let groupOptions = [...new Set(this.props.courses.map(node => node.group))];
     let courseEntries = this.props.courses.map(course => (
       <CourseEntry
@@ -221,15 +265,16 @@ class CoursebinWidget extends React.Component {
       />
     ) : null;
 
-    if (
-      this.props.courses.length === 0
-    ) {
+    if (this.props.courses.length === 0) {
       courseEntries = (
         <>
           <Accordion.Title active>Empty</Accordion.Title>
         </>
       );
     }
+
+    let canRefresh = this.props.courses.filter(this.needRefresh).length > 0;
+
     return (
       <Container>
         <Segment.Group>
@@ -239,9 +284,9 @@ class CoursebinWidget extends React.Component {
               <Form.Group inline>
                 <Form.Select
                   name="term"
-                  value={this.state.term}
+                  value={term}
                   options={termOptions}
-                  onChange={(e, props) => this.handleChange(e, props)}
+                  onChange={this.handleSettingChange}
                   width={6}
                   selection
                   style={{ width: "100%" }}
@@ -249,15 +294,15 @@ class CoursebinWidget extends React.Component {
                 <Form.Input
                   placeholder="Course"
                   name="course"
-                  value={this.state.course}
-                  onChange={(e, props) => this.handleChange(e, props)}
+                  value={course}
+                  onChange={this.handleSettingChange}
                   width={6}
                 />
                 <Form.Button
                   content="Submit"
                   width={4}
                   fluid
-                  disabled={!this.state.course}
+                  disabled={!course}
                 />
               </Form.Group>
             </Form>
@@ -267,15 +312,17 @@ class CoursebinWidget extends React.Component {
             <Accordion>
               <Accordion.Title
                 as={Header}
-                active={this.state.toolsOpen}
-                onClick={this.toggleToolSegment}
+                active={toolsOpen}
+                onClick={this.handleSettingChange}
+                value={!toolsOpen}
+                name="toolsOpen"
                 style={{ marginBottom: "0" }}
               >
                 <Icon name="dropdown" />
                 Tools
               </Accordion.Title>
               <Accordion.Content
-                active={this.state.toolsOpen}
+                active={toolsOpen}
                 style={{ marginTop: "14px" }}
               >
                 <Form>
@@ -285,7 +332,10 @@ class CoursebinWidget extends React.Component {
                       fluid
                       onClick={this.handleSaveCoursebin}
                       loading={this.state.loading.includes("save")}
-                      disabled={this.state.loading.includes("save")}
+                      disabled={
+                        this.state.loading.includes("save") ||
+                        !this.props.profile
+                      }
                       width={3}
                     />
                     <Form.Button
@@ -293,14 +343,19 @@ class CoursebinWidget extends React.Component {
                       fluid
                       onClick={this.handleLoadCoursebin}
                       loading={this.state.loading.includes("load")}
-                      disabled={this.state.loading.includes("load")}
+                      disabled={
+                        this.state.loading.includes("load") ||
+                        !this.props.profile
+                      }
                       width={3}
                     />
                     <Form.Button
                       content="Refresh All"
                       fluid
                       loading={this.state.loading.includes("refresh")}
-                      disabled={this.state.loading.includes("refresh")}
+                      disabled={
+                        this.state.loading.includes("refresh") || !canRefresh
+                      }
                       onClick={this.handleRefreshAll}
                       width={3}
                     />
@@ -310,16 +365,41 @@ class CoursebinWidget extends React.Component {
                   </Form.Field>
                   <Form.Group inline>
                     <Form.Input
-                      placeholder="csci-201, csci-201.lab, 29979, etc."
+                      placeholder="csci-201, csci-201:lab, 29979, etc."
                       fluid
                       width={10}
+                      name="clearedSections"
+                      value={clearedSections}
+                      onChange={this.handleSettingChange}
                     />
-                    <Form.Checkbox label="Exclude Closed" width={2} />
-                    <Form.Checkbox label="Cleared Only" width={2} />
+                    <Form.Checkbox
+                      label="Exclude Closed"
+                      width={2}
+                      name="excludeClosed"
+                      checked={excludeClosed}
+                      onChange={(e, { name }) =>
+                        this.handleSettingChange(e, {
+                          name,
+                          value: !excludeClosed
+                        })
+                      }
+                    />
+                    <Form.Checkbox
+                      label="Cleared Only"
+                      width={2}
+                      name="clearedOnly"
+                      checked={clearedOnly}
+                      onChange={(e, { name }) =>
+                        this.handleSettingChange(e, {
+                          name,
+                          value: !clearedOnly
+                        })
+                      }
+                    />
                     <Form.Button
                       content="Filter"
                       fluid
-                      onClick={() => this.props.setIncludeCourse(false)}
+                      onClick={this.handleFilterSelection}
                       width={2}
                     />
                   </Form.Group>
@@ -331,11 +411,14 @@ class CoursebinWidget extends React.Component {
                       placeholder="math-407, quiz, 29979, etc."
                       fluid
                       width={14}
+                      name="exemptedSections"
+                      value={exemptedSections}
+                      onChange={this.handleSettingChange}
                     />
                     <Form.Button
                       content="Exempt"
                       fluid
-                      onClick={() => this.props.setIncludeCourse(false)}
+                      onClick={this.handleFilterPenalize}
                       width={2}
                     />
                   </Form.Group>
@@ -346,7 +429,9 @@ class CoursebinWidget extends React.Component {
 
           <Segment>
             <Header>Coursebin</Header>
-            {loadingCourseMessage}
+            <Transition.Group animation="fade down" duration={200}>
+              {loadingCourseMessage}
+            </Transition.Group>
             <Accordion styled fluid exclusive={false}>
               {courseEntries}
             </Accordion>
@@ -368,16 +453,17 @@ export default connect(
       ),
     coursebin: state.course,
     preference: state.preference,
-    profile: state.user.profile
+    profile: state.user.profile,
+    settings: state.settings
   }),
   {
     addCourse,
     setIncludeCourse,
     setGroupCourse,
-    resetCourseGroup,
-    startGroupFromOne,
-    setUserProfile,
     loadCoursebin,
-    loadPreferences
+    loadPreferences,
+    editSetting,
+    filterSelection,
+    filterPenalize
   }
 )(CoursebinWidget);

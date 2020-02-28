@@ -18,9 +18,13 @@ import {
   resetCourseGroup,
   startGroupFromOne,
   loadCoursebin,
-  loadPreferences
+  loadPreferences,
+  editSetting,
+  filterPenalize,
+  filterSelection
 } from "./actions";
 import { transformCourse } from "./util";
+import { defaultTerm } from "./settings";
 
 export const courseReducer = createReducer([], {
   [addCourse]: (state, action) => {
@@ -133,8 +137,72 @@ export const courseReducer = createReducer([], {
   [loadCoursebin]: (state, action) => {
     let coursebin = action.payload;
     if (coursebin !== null) return coursebin;
+  },
+  [filterSelection]: (state, action) => {
+    let { excludeClosed, clearedOnly, clearedSections } = action.payload;
+    let isCleared = selectorCreator(clearedSections);
+    state
+      .filter(node => node.type === "section")
+      .forEach(node => {
+        node.exclude =
+          (node.closed && excludeClosed) ||
+          (clearedOnly && node.need_clearance && !isCleared(node));
+      });
+  },
+  [filterPenalize]: (state, action) => {
+    let exemptedSections = action.payload;
+    let isExempted = selectorCreator(exemptedSections);
+    state
+      .filter(node => node.type === "section")
+      .forEach(node => {
+        node.exempt = isExempted(node);
+      });
   }
 });
+
+const selectorCreator = sectionsStr => {
+  let conditions = sectionsStr
+    .split(",")
+    .filter(str => !str.includes(":"))
+    .map(str => str.trim().toLowerCase())
+    .filter(str => str);
+  let conditionGroups = sectionsStr
+    .split(",")
+    .filter(str => str.includes(":"))
+    .map(str => str.split(":").map(part => part.trim().toLowerCase()));
+  return section => {
+    for (let condition of conditions) {
+      if (
+        section.course === condition ||
+        section.component.toLowerCase() === condition ||
+        String(section.section_id) === condition
+      ) {
+        return true;
+      }
+    }
+    for (let group of conditionGroups) {
+      if (group.length === 1 && group[0] === section.course) {
+        return true;
+      }
+      if (
+        group.length === 2 &&
+        group[0] === section.course &&
+        group[1] === section.component.toLowerCase()
+      ) {
+        return true;
+      }
+      if (
+        group.length >= 3 &&
+        group[0] === section.course &&
+        group[1] === section.component.toLowerCase() &&
+        group[2] === String(section.section_id)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+};
 
 export const preferenceReducer = createReducer(
   {
@@ -207,9 +275,30 @@ export const userReducer = createReducer(
   }
 );
 
+export const settingReducer = createReducer(
+  {
+    course: "",
+    term: defaultTerm,
+    toolsOpen: false,
+    clearedSections: "",
+    clearedOnly: false,
+    excludeClosed: false,
+    exemptedSections: ""
+  },
+  {
+    [editSetting]: (state, action) => {
+      let { name, value } = action.payload;
+      if (state.hasOwnProperty(name)) {
+        state[name] = value;
+      }
+    }
+  }
+);
+
 export const allReducers = combineReducers({
   course: courseReducer,
   preference: preferenceReducer,
   task_result: taskResultReducer,
-  user: userReducer
+  user: userReducer,
+  settings: settingReducer
 });

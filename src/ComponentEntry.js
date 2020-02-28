@@ -10,12 +10,31 @@ class ComponentEntry extends React.Component {
   }
 
   toggle() {
-    this.setState(prev => ({ active: !prev.active }));
+    this.setState(prev => ({ active: !prev.active, empty: false }));
+  }
+
+  isEmpty = sections =>
+    sections.filter(section => !section.exclude).length === 0;
+
+  componentDidMount() {
+    if (this.isEmpty(this.props.sections)) {
+      this.props.setEmptyWarning();
+      this.setState({ empty: true });
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    let prevEmpty = this.isEmpty(prevProps.sections);
+    let empty = this.isEmpty(this.props.sections);
+    if (prevEmpty !== empty) {
+      this.props.setEmptyWarning(empty);
+      this.setState({ empty: empty });
+    }
   }
 
   render() {
     let section_rows = [];
-    for (let section of this.props.children) {
+    for (let section of this.props.sections) {
       let time;
       if (section.start && section.end) {
         time =
@@ -36,7 +55,17 @@ class ComponentEntry extends React.Component {
           </Table.Cell>
           <Table.Cell disabled={disabled}>{days.join(", ")}</Table.Cell>
           <Table.Cell disabled={disabled}>{time}</Table.Cell>
-          <Table.Cell disabled={disabled}>{section.registered}</Table.Cell>
+          <Table.Cell disabled={disabled}>
+            {section.registered}
+            {section.closed && (
+              <Icon
+                name="minus circle"
+                color="red"
+                style={{ marginLeft: "0.5em" }}
+                disabled={disabled}
+              />
+            )}
+          </Table.Cell>
           <Table.Cell disabled={disabled}>{section.instructor}</Table.Cell>
           <Table.Cell disabled={disabled}>{section.location}</Table.Cell>
           <Table.Cell disabled={this.props.forceExclude}>
@@ -68,15 +97,17 @@ class ComponentEntry extends React.Component {
         </Table.Row>
       );
     }
+    let titleStyle = this.state.empty ? { textDecoration: "line-through" } : {};
     return (
       <>
         <Accordion.Title
           active={this.state.active}
           onClick={() => this.toggle()}
+          style={titleStyle}
         >
           <Icon name="dropdown" />
           {this.props.component} ({this.props.numActive}/
-          {this.props.children.length})
+          {this.props.sections.length})
         </Accordion.Title>
         <Accordion.Content active={this.state.active}>
           <Table celled fixed selectable>
@@ -89,7 +120,7 @@ class ComponentEntry extends React.Component {
 }
 
 export default connect((state, ownProps) => ({
-  children: state.course.filter(node => node.parent === ownProps.node_id),
+  sections: state.course.filter(node => node.parent === ownProps.node_id),
   numActive: state.course.filter(
     node => node.parent === ownProps.node_id && !node.exclude
   ).length

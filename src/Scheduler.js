@@ -4,10 +4,7 @@ import {
   Menu,
   Dropdown,
   List,
-  Grid,
   Segment,
-  Header,
-  Divider
 } from "semantic-ui-react";
 import { Route, useParams, Switch, NavLink } from "react-router-dom";
 import SchedulePage from "./SchedulePage";
@@ -18,8 +15,8 @@ import LoginButton from "./LoginButton";
 import SignupButton from "./SignupButton";
 import TaskListPage from "./TaskListPage";
 import ScheduleListPage from "./ScheduleListPage";
-import { SemanticToastContainer } from 'react-semantic-toasts';
-import 'react-semantic-toasts/styles/react-semantic-alert.css';
+import { SemanticToastContainer } from "react-semantic-toasts";
+import "react-semantic-toasts/styles/react-semantic-alert.css";
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -33,7 +30,7 @@ class Scheduler extends React.Component {
 
   render() {
     return (
-      <div>
+      <>
         <Menu fixed="top" inverted>
           <Container>
             <Menu.Item as="a" header>
@@ -84,7 +81,7 @@ class Scheduler extends React.Component {
           </Container>
         </Menu>
 
-        <Container style={{ minHeight: 500, marginTop: "7em" }}>
+        <Container className="main-content">
           <Switch>
             <Route path="/app" component={AppPage} />
             <Route
@@ -112,47 +109,9 @@ class Scheduler extends React.Component {
         <Segment
           inverted
           vertical
-          style={{ margin: "5em 0em 0em", padding: "5em 0em" }}
+          className="footer"
         >
           <Container textAlign="center">
-            <Grid divided inverted stackable>
-              <Grid.Column width={3}>
-                <Header inverted as="h4" content="Group 1" />
-                <List link inverted>
-                  <List.Item as="a">Link One</List.Item>
-                  <List.Item as="a">Link Two</List.Item>
-                  <List.Item as="a">Link Three</List.Item>
-                  <List.Item as="a">Link Four</List.Item>
-                </List>
-              </Grid.Column>
-              <Grid.Column width={3}>
-                <Header inverted as="h4" content="Group 2" />
-                <List link inverted>
-                  <List.Item as="a">Link One</List.Item>
-                  <List.Item as="a">Link Two</List.Item>
-                  <List.Item as="a">Link Three</List.Item>
-                  <List.Item as="a">Link Four</List.Item>
-                </List>
-              </Grid.Column>
-              <Grid.Column width={3}>
-                <Header inverted as="h4" content="Group 3" />
-                <List link inverted>
-                  <List.Item as="a">Link One</List.Item>
-                  <List.Item as="a">Link Two</List.Item>
-                  <List.Item as="a">Link Three</List.Item>
-                  <List.Item as="a">Link Four</List.Item>
-                </List>
-              </Grid.Column>
-              <Grid.Column width={7}>
-                <Header inverted as="h4" content="Footer Header" />
-                <p>
-                  Extra space for a call to action inside the footer that could
-                  help re-engage users.
-                </p>
-              </Grid.Column>
-            </Grid>
-
-            <Divider inverted section />
             {/* <Image centered size="mini" src="/logo.png" /> */}
             <List horizontal inverted divided link size="small">
               <List.Item as="a" href="#">
@@ -170,8 +129,8 @@ class Scheduler extends React.Component {
             </List>
           </Container>
         </Segment>
-        <SemanticToastContainer position="bottom-right"/>
-      </div>
+        <SemanticToastContainer position="bottom-right" />
+      </>
     );
   }
 }

@@ -16,6 +16,7 @@ class PartEntry extends React.Component {
         <ComponentEntry
           {...component}
           forceExclude={this.props.forceExclude}
+          setEmptyWarning={this.props.setEmptyWarning}
         ></ComponentEntry>
       );
     }

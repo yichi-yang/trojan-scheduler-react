@@ -32,7 +32,7 @@ export const num2color = num =>
 class CourseEntry extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { active: props.active };
+    this.state = { active: props.active, emptyComponent: false };
   }
 
   toggleActive = () => {
@@ -57,6 +57,10 @@ class CourseEntry extends React.Component {
     });
   };
 
+  setEmptyWarning = (empty = true) => {
+    this.setState({ emptyComponent: empty });
+  };
+
   render() {
     if (this.props.loading) {
       return (
@@ -71,9 +75,13 @@ class CourseEntry extends React.Component {
       );
     }
     let parts = [];
-    for (let part of this.props.children) {
+    for (let part of this.props.courses) {
       parts.push(
-        <PartEntry {...part} forceExclude={this.props.exclude}></PartEntry>
+        <PartEntry
+          {...part}
+          forceExclude={this.props.exclude}
+          setEmptyWarning={this.setEmptyWarning}
+        />
       );
     }
     let outdated = new Date() - new Date(this.props.updated) > 10 * 60 * 1000;
@@ -109,11 +117,13 @@ class CourseEntry extends React.Component {
             />
           </Label>
 
-          <Label circular horizontal>
-            {this.props.numActive}
-          </Label>
+          {this.state.emptyComponent && (
+            <Icon name="times circle" color="red" size="large"></Icon>
+          )}
 
-          {outdated && <Icon name="warning circle" color="yellow" size="large"></Icon>}
+          {outdated && (
+            <Icon name="warning circle" color="yellow" size="large"></Icon>
+          )}
 
           <Button.Group size="mini" floated="right" compact>
             {buttonInclude}
@@ -138,13 +148,7 @@ class CourseEntry extends React.Component {
 
 export default connect(
   (state, ownProps) => ({
-    children: state.course.filter(node => node.parent === ownProps.node_id),
-    numActive: state.course.filter(
-      node =>
-        node.course === ownProps.course &&
-        node.type === "section" &&
-        !node.exclude
-    ).length
+    courses: state.course.filter(node => node.parent === ownProps.node_id)
   }),
   {
     deleteCourse,

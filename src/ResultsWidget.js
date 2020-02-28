@@ -23,7 +23,7 @@ class ResultsWidget extends React.Component {
   getDescription = coursebin =>
     coursebin
       .filter(node => node.type === "course" && !node.exclude)
-      .map(node => node.course)
+      .map(node => node.course.toUpperCase())
       .join(", ");
 
   handleSend = () => {
@@ -65,7 +65,7 @@ class ResultsWidget extends React.Component {
           if (ttl !== null && ttl <= 0) {
             this.setState({
               error:
-                "It's taking a bit longer than expected... Refresh page to get update."
+                "It's taking a bit longer than expected... Go to the Task page for updates."
             });
           } else {
             setTimeout(
@@ -167,16 +167,24 @@ class ResultsWidget extends React.Component {
     if (this.props.coursebin.length === 0) {
       coursebinSummary = <Message info>Your coursebin is empty.</Message>;
     } else {
+      let numCourses = this.props.coursebin.filter(
+        node => node.type === "course" && !node.exclude
+      ).length;
+      let excludedCount = this.props.coursebin.filter(
+        node => node.type === "course" && node.exclude
+      ).length;
       coursebinSummary = (
         <Message info>
-          You have{" "}
-          {this.props.coursebin.filter(node => node.type === "course").length}{" "}
-          course(s) in your coursebin.
+          <p>
+            You have selected {numCourses} course(s) ({excludedCount} excluded).
+          </p>
           <List bulleted>
             {this.props.coursebin
-              .filter(node => node.type === "course")
+              .filter(node => node.type === "course" && !node.exclude)
               .map(node => (
-                <List.Item key={node.key}>{node.course}</List.Item>
+                <List.Item key={node.key}>
+                  {node.course.toUpperCase()}
+                </List.Item>
               ))}
           </List>
         </Message>
