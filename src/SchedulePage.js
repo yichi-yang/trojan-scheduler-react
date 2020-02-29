@@ -10,7 +10,8 @@ import {
   Icon,
   Modal,
   Form,
-  Confirm
+  Confirm,
+  Loader
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "./RedirectButton";
@@ -25,6 +26,7 @@ import {
   str2para,
   getScheduleName
 } from "./util";
+import { scheduleSectionLifetime } from "./settings";
 
 const errorFormatter = errorFormatterCreator(
   noPermissionFormatter(
@@ -44,7 +46,8 @@ class SchedulePage extends React.Component {
       loading: false,
       openModal: null,
       editTitle: "",
-      editDescription: ""
+      editDescription: "",
+      updatingCourse: []
     };
     if (!props.schedule_id) {
       this.state.error = "no schedule id in props";
@@ -61,17 +64,18 @@ class SchedulePage extends React.Component {
         })
         .then(response => {
           let { data } = response;
-          this.setStateAsync({ scheduleData: data });
+          this.setState({ scheduleData: data });
+          if (data.sections) {
+            this.updateExpiredSections(data.sections);
+          }
           if (data.user) {
             axios
               .get(`/api/users/${data.user}/`, {
                 cancelToken: this.cancelSource.token
               })
-              .then(response =>
-                this.setStateAsync({ scheduleUser: response.data })
-              );
+              .then(response => this.setState({ scheduleUser: response.data }));
           } else {
-            this.setStateAsync({
+            this.setState({
               scheduleUser: {
                 avatar: "https://avatars.dicebear.com/v2/bottts/Empty.svg",
                 display_name: "Anonymous"
@@ -80,20 +84,85 @@ class SchedulePage extends React.Component {
           }
         })
         .catch(error => {
-          this.setStateAsync({
+          this.setState({
             error: errorFormatter(error)
           });
         });
     }
   };
 
+  updateExpiredSections = sections => {
+    let expiredCourses = sections
+      .filter(
+        section =>
+          moment().diff(moment(section.updated)) >
+          scheduleSectionLifetime.asMilliseconds()
+      )
+      .map(section => ({
+        name: section.course_name,
+        term: section.term
+      }))
+      .filter(
+        (course, index, array) =>
+          array.findIndex(
+            e => e.name === course.name && e.term === course.term
+          ) === index
+      );
+    expiredCourses.forEach(course => {
+      console.log(course.name);
+      this.setState(state => ({
+        updatingCourse: state.updatingCourse.concat(course.name)
+      }));
+      axios
+        .put(
+          `/api/courses/${course.term}/${course.name}/`,
+          {},
+          {
+            cancelToken: this.cancelSource.token
+          }
+        )
+        .then(response => {
+          this.setState(state => ({
+            scheduleData: {
+              ...state.scheduleData,
+              sections: this.updateScheduleSections(
+                state.scheduleData.sections,
+                response.data
+              )
+            },
+            updatingCourse: state.updatingCourse.filter(c => c !== course.name)
+          }));
+        })
+        .catch(error => {
+          this.setState(state => ({
+            updatingCourse: state.updatingCourse.filter(c => c !== course.name)
+          }));
+        });
+    });
+  };
+
+  updateScheduleSections = (sections, course) =>
+    sections.map(section => {
+      let updatedSection = course.sections.find(
+        updatedSection =>
+          updatedSection.id === section.id && course.term === section.term
+      );
+      if (updatedSection) {
+        return { ...section, ...updatedSection, updated: course.updated };
+      } else {
+        return section;
+      }
+    });
+
   handleUpdate = (e, { values }) => {
     if (this.props.schedule_id) {
       this.setState({ loading: true });
       axios
-        .patch(`/api/schedules/${this.props.schedule_id}/`, values)
+        .patch(`/api/schedules/${this.props.schedule_id}/`, values, {
+          cancelToken: this.cancelSource.token
+        })
         .then(response => {
-          this.setStateAsync({
+          this.setState({
             scheduleData: response.data,
             loading: false,
             openModal: null,
@@ -101,7 +170,7 @@ class SchedulePage extends React.Component {
           });
         })
         .catch(error => {
-          this.setStateAsync({
+          this.setState({
             error: errorFormatter(error),
             loading: false,
             openModal: null
@@ -114,9 +183,11 @@ class SchedulePage extends React.Component {
     if (this.props.schedule_id) {
       this.setState({ loading: true });
       axios
-        .delete(`/api/schedules/${this.props.schedule_id}/`)
+        .delete(`/api/schedules/${this.props.schedule_id}/`, {
+          cancelToken: this.cancelSource.token
+        })
         .then(response => {
-          this.setStateAsync({
+          this.setState({
             scheduleData: response.data,
             loading: false,
             error: "This schedule has been deleted.",
@@ -124,7 +195,7 @@ class SchedulePage extends React.Component {
           });
         })
         .catch(error => {
-          this.setStateAsync({
+          this.setState({
             error: errorFormatter(error),
             loading: false,
             openModal: null
@@ -157,21 +228,13 @@ class SchedulePage extends React.Component {
     }
   };
 
-  setStateAsync = (arg, callback) => {
-    if (this._mounted) {
-      this.setState(arg, callback);
-    }
-  };
-
   componentDidMount() {
-    this._mounted = true;
     if (!this.state.scheduleData) {
       this.loadScheduleData();
     }
   }
 
   componentWillUnmount() {
-    this._mounted = false;
     this.cancelSource.cancel(
       "axios requests cancelled on schedule page unmount"
     );
@@ -386,6 +449,17 @@ class SchedulePage extends React.Component {
                 redirect={{ to: `/task/${scheduleData.task}/` }}
               />
             )
+          }
+          footerWidget={
+            this.state.updatingCourse.length > 0 ? (
+              <>
+                Updating{" "}
+                {this.state.updatingCourse
+                  .map(course => course.toUpperCase())
+                  .join(", ")}{" "}
+                <Loader active inline size="tiny" />
+              </>
+            ) : null
           }
         />
       );

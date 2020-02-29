@@ -4,7 +4,8 @@ import {
   Segment,
   Message,
   Item,
-  Pagination
+  Pagination,
+  Label
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -55,21 +56,31 @@ class TaskListPage extends React.Component {
     }
   }
 
-  taskMeta = ({ status, message }) => {
+  taskStatusLabel = ({ status, message }) => {
     if (status === "PD") {
-      return "Pending...";
+      return <Label color="blue">pending</Label>;
     } else if (status === "PS") {
-      return "Processing...";
+      return <Label color="teal">processing</Label>;
     } else if (status === "DN") {
-      return "Done.";
+      return <Label color="green">done</Label>;
     } else if (status === "WN") {
-      return `Warning: ${message}`;
+      return <Label color="yellow">warning</Label>;
     } else if (status === "ER") {
-      return `Error: ${message}`;
+      return <Label color="red">error</Label>;
     } else if (status === "EX") {
-      return `Oops... Task failed with exception ${message}.`;
+      return <Label color="red">{`exception ${message}`}</Label>;
     } else {
-      return "???";
+      return null;
+    }
+  };
+
+  taskErrorMessage = ({ status, message }) => {
+    if (status === "WN") {
+      return <p>{`Warning: ${message}`}</p>;
+    } else if (status === "ER") {
+      return <p>{`Error: ${message}`}</p>;
+    } else if (status === "EX") {
+      return <p>{`Task failed with exception ${message}`}</p>;
     }
   };
 
@@ -95,20 +106,29 @@ class TaskListPage extends React.Component {
     if (!loading && task_list && task_list.results) {
       content = (
         <Item.Group divided>
-          {task_list.results.map(task => (
-            <Item key={task.id}>
-              <Item.Content>
-                <Item.Header as={Link} to={task.id + "/"}>
-                  {task.name ? task.name : `Task ${task.id}`}
-                </Item.Header>
-                <Item.Meta>{this.taskMeta(task)}</Item.Meta>
-                <Item.Extra>
-                  {task.count} schedules, created{" "}
-                  {moment(task.created).fromNow()}
-                </Item.Extra>
-              </Item.Content>
-            </Item>
-          ))}
+          {task_list.results.map(task => {
+            let errorMessage = this.taskErrorMessage(task);
+            return (
+              <Item key={task.id}>
+                <Item.Content>
+                  <Item.Header as={Link} to={task.id + "/"}>
+                    {task.name ? task.name : `Task ${task.id}`}
+                  </Item.Header>
+                  <Item.Meta>
+                    {task.count} schedules, created{" "}
+                    {moment(task.created).fromNow()}
+                  </Item.Meta>
+                  {(errorMessage || task.description) && (
+                    <Item.Extra style={{ marginBottom: 7 }}>
+                      {task.description && <p>{task.description}</p>}
+                      {errorMessage}
+                    </Item.Extra>
+                  )}
+                  {this.taskStatusLabel(task)}
+                </Item.Content>
+              </Item>
+            );
+          })}
         </Item.Group>
       );
       pagination = (

@@ -4,7 +4,10 @@ import {
   Segment,
   Message,
   Item,
-  Pagination
+  Pagination,
+  Label,
+  Icon,
+  Popup
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -54,20 +57,35 @@ class ScheduleListPage extends React.Component {
     }
   }
 
-  scheduleMeta = schedule => {
-    let meta = schedule.public ? "Public" : "Private";
-    if (!schedule.user) {
-      meta += " (created by anonymous user)";
-    }
-    return meta;
-  };
-
   handlePaginationChange = (e, { activePage }) => {
     let query = new URLSearchParams();
     query.set("page", activePage);
     this.props.history.push(
       this.props.location.pathname + "?" + query.toString()
     );
+  };
+
+  expireWarning = schedule => {
+    let created = moment(schedule.created);
+    let expireAt = created.add(30, "d");
+    let timeToExpire = expireAt.diff(moment());
+    let timeStr = timeToExpire > 0 ? expireAt.fromNow() : "anytime soon";
+    if (timeToExpire < moment.duration(30, "m").asMilliseconds()) {
+      return (
+        <Popup
+          trigger={<Icon name="trash alternate" color="yellow" size="large" />}
+          content={`Will be removed ${timeStr}.`}
+        />
+      );
+    } else if (timeToExpire < moment.duration(5, "d").asMilliseconds()) {
+      return (
+        <Popup
+          trigger={<Icon name="clock" color="yellow" size="large" />}
+          content={`Expire ${timeStr}.`}
+        />
+      );
+    }
+    return null;
   };
 
   render() {
@@ -93,11 +111,28 @@ class ScheduleListPage extends React.Component {
                   <Item.Header as={Link} to={schedule.id + "/"}>
                     {schedule.name ? schedule.name : `Schedule ${schedule.id}`}
                   </Item.Header>
-                  <Item.Meta>{this.scheduleMeta(schedule)}</Item.Meta>
-                  <Item.Extra>
+                  <Item.Meta>
                     Total cost {schedule.total_score}, created{" "}
                     {moment(schedule.created).fromNow()}
-                  </Item.Extra>
+                  </Item.Meta>
+                  {schedule.description && (
+                    <Item.Extra>{schedule.description}</Item.Extra>
+                  )}
+                  <Label.Group style={{ marginTop: 7 }}>
+                    {schedule.saved ? (
+                      <Label color="blue">
+                        <Icon name="save" />
+                        saved
+                      </Label>
+                    ) : null}
+                    {schedule.public ? (
+                      <Label color="green">
+                        <Icon name="child" />
+                        {schedule.user ? "public" : "anonymous"}
+                      </Label>
+                    ) : null}
+                    {this.expireWarning(schedule)}
+                  </Label.Group>
                 </Item.Content>
               </Item>
             ))}

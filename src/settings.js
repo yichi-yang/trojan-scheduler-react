@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const termOptions = [
   {
     key: "20202",
@@ -17,3 +19,6 @@ export const termOptions = [
 ];
 
 export const defaultTerm = "20201";
+
+export const coursebinCourseLifetime = moment.duration(10, "m");
+export const scheduleSectionLifetime = moment.duration(10, "m");

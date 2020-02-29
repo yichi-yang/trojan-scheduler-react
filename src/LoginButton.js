@@ -24,15 +24,10 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  str2para,
-  customMessageFormatter
+  str2para
 } from "./util";
 
 const errorFormatter = errorFormatterCreator(
-  customMessageFormatter("Your session has expired. Log in to continue.", [
-    401
-  ]),
-  customMessageFormatter,
   responseDataFormatter,
   statusCodeFormatter
 );

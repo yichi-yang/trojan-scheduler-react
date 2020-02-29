@@ -33,12 +33,29 @@ import {
   customMessageFormatter
 } from "./util";
 import { toast } from "react-semantic-toasts";
+import moment from "moment";
+import { coursebinCourseLifetime } from "./settings";
 
 const errorFormatter = errorFormatterCreator(
+  error => {
+    if (
+      error.response &&
+      error.response.data &&
+      error.response.data.blame_usc
+    ) {
+      return `usc.edu did not respond (${error.response.data.fetch_status}). Try again later.`;
+    }
+    return null;
+  },
   customMessageFormatter("Your session has expired. Log in to continue.", [
     401
   ]),
-  responseDataFormatter,
+  error => {
+    if (error.response && error.response.status !== 404) {
+      return responseDataFormatter(error);
+    }
+    return null;
+  },
   statusCodeFormatter
 );
 
@@ -120,7 +137,9 @@ class CoursebinWidget extends React.Component {
     });
   };
 
-  needRefresh = course => new Date() - new Date(course.updated) > 5 * 60 * 1000;
+  needRefresh = course =>
+    moment().diff(moment(course.updated)) >
+    coursebinCourseLifetime.asMilliseconds();
 
   handleSaveCoursebin = () => {
     let { profile } = this.props;
@@ -416,7 +435,7 @@ class CoursebinWidget extends React.Component {
                       width={10}
                       name="clearedSections"
                       value={clearedSections}
-                      onChange={this.handleSettingChange}
+                      onBlur={this.handleSettingChange}
                     />
                     <Form.Checkbox
                       label="Exclude Closed"

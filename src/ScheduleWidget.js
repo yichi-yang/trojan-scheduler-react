@@ -1,13 +1,12 @@
 import React from "react";
-import { Label, Table, Message, Grid } from "semantic-ui-react";
+import { Label, Table, Message, Grid, Icon } from "semantic-ui-react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import Rainbow from "rainbowvis.js";
 import axios from "axios";
 import ShareButtons from "./ShareButtons";
-import {
-  getScheduleName
-} from "./util";
+import { getScheduleName } from "./util";
+import { scheduleSectionLifetime } from "./settings";
 
 const localizer = momentLocalizer(moment);
 
@@ -177,6 +176,14 @@ class ScheduleWidget extends React.Component {
                 <Table.Row key={section.section_id}>
                   <Table.Cell>
                     {section.section_id + (section.need_clearance ? "D" : "R")}
+                    {moment().diff(moment(section.updated)) >
+                      scheduleSectionLifetime.asMilliseconds() && (
+                      <Icon
+                        name="warning circle"
+                        color="yellow"
+                        style={{ marginLeft: "0.5em" }}
+                      />
+                    )}
                   </Table.Cell>
                   <Table.Cell>{section.course_name}</Table.Cell>
                   <Table.Cell>{section.section_type}</Table.Cell>
@@ -190,12 +197,30 @@ class ScheduleWidget extends React.Component {
                         section.end.substring(0, 5)
                       : "TBD"}
                   </Table.Cell>
-                  <Table.Cell>{section.registered}</Table.Cell>
+                  <Table.Cell>
+                    {section.registered}
+                    {section.closed && (
+                      <Icon
+                        name="minus circle"
+                        color="red"
+                        style={{ marginLeft: "0.5em" }}
+                      />
+                    )}
+                  </Table.Cell>
                   <Table.Cell>{section.instructor}</Table.Cell>
                   <Table.Cell>{section.location}</Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
+            {this.props.footerWidget && (
+              <Table.Footer>
+                <Table.Row>
+                  <Table.HeaderCell colSpan="8">
+                    {this.props.footerWidget}
+                  </Table.HeaderCell>
+                </Table.Row>
+              </Table.Footer>
+            )}
           </Table>
         </>
       );
