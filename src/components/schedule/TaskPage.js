@@ -8,11 +8,11 @@ import {
   Header
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
-import RedirectButton from "./RedirectButton";
+import RedirectButton from "../RedirectButton";
 import moment from "moment";
 import { connect } from "react-redux";
 import axios from "axios";
-import { error2message } from "./util";
+import { error2message } from "../../util";
 
 class TaskPage extends React.Component {
   constructor(props) {

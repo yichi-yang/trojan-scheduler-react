@@ -1,7 +1,7 @@
 import React from "react";
 import { Accordion, Icon, Table, Checkbox } from "semantic-ui-react";
 import { connect } from "react-redux";
-import { toggleCourseInclude, toggleCoursePenalize } from "./actions";
+import { toggleCourseInclude, toggleCoursePenalize } from "../../actions";
 
 class ComponentEntry extends React.Component {
   constructor(props) {

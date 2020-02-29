@@ -7,14 +7,14 @@ import {
   Segment,
 } from "semantic-ui-react";
 import { Route, useParams, Switch, NavLink } from "react-router-dom";
-import SchedulePage from "./SchedulePage";
-import TaskPage from "./TaskPage";
+import SchedulePage from "./schedule/SchedulePage";
+import TaskPage from "./schedule/TaskPage";
 import NotFound from "./NotFound";
-import AppPage from "./AppPage";
-import LoginButton from "./LoginButton";
-import SignupButton from "./SignupButton";
-import TaskListPage from "./TaskListPage";
-import ScheduleListPage from "./ScheduleListPage";
+import AppPage from "./app/AppPage";
+import LoginButton from "./account/LoginButton";
+import SignupButton from "./account/SignupButton";
+import TaskListPage from "./schedule/TaskListPage";
+import ScheduleListPage from "./schedule/ScheduleListPage";
 import { SemanticToastContainer } from "react-semantic-toasts";
 import "react-semantic-toasts/styles/react-semantic-alert.css";
 

@@ -5,8 +5,8 @@ import moment from "moment";
 import Rainbow from "rainbowvis.js";
 import axios from "axios";
 import ShareButtons from "./ShareButtons";
-import { getScheduleName } from "./util";
-import { scheduleSectionLifetime } from "./settings";
+import { getScheduleName } from "../../util";
+import { scheduleSectionLifetime } from "../../settings";
 
 const localizer = momentLocalizer(moment);
 

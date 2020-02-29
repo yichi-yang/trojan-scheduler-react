@@ -5,7 +5,7 @@ import { Route, Switch, Redirect } from "react-router-dom";
 import StepNav from "./StepNav";
 import PreferencesWidget from "./PreferencesWidget";
 import ResultsWidget from "./ResultsWidget";
-import { join } from "./util";
+import { join } from "../../util";
 
 class AppPage extends React.Component {
   constructor(props) {

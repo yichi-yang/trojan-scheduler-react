@@ -14,7 +14,7 @@ import {
   Loader
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
-import RedirectButton from "./RedirectButton";
+import RedirectButton from "../RedirectButton";
 import moment from "moment";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -25,8 +25,8 @@ import {
   noPermissionFormatter,
   str2para,
   getScheduleName
-} from "./util";
-import { scheduleSectionLifetime } from "./settings";
+} from "../../util";
+import { scheduleSectionLifetime } from "../../settings";
 
 const errorFormatter = errorFormatterCreator(
   noPermissionFormatter(

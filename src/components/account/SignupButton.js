@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Message, Modal, Form, Item } from "semantic-ui-react";
 import { connect } from "react-redux";
-import { setUserTokens, setUserProfile, clearUserState } from "./actions";
+import { setUserTokens, setUserProfile, clearUserState } from "../../actions";
 import axios from "axios";
 import AvatarSelect from "./AvatarSelect";
 import { avatarURL } from "./AvatarSelect";
@@ -12,7 +12,7 @@ import {
   responseDataFormatter,
   statusCodeFormatter,
   str2para
-} from "./util";
+} from "../../util";
 
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();

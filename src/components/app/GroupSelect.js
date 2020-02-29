@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Button, Label, Form, Responsive } from "semantic-ui-react";
 import { num2color } from "./CourseEntry";
-import { setGroupCourse } from "./actions";
+import { setGroupCourse } from "../../actions";
 import { connect } from "react-redux";
 
 class GroupSelect extends React.Component {

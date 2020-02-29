@@ -14,7 +14,7 @@ import {
   editPreferences,
   addReservedSlot,
   removeReservedSlot
-} from "./actions";
+} from "../../actions";
 import shortid from "shortid";
 
 class PreferencesWidget extends React.Component {

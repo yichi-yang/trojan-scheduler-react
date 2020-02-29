@@ -22,19 +22,19 @@ import {
   filterSelection,
   filterPenalize,
   loadSetting
-} from "./actions";
+} from "../../actions";
 import { connect } from "react-redux";
 import axios from "axios";
-import { termOptions, defaultTerm } from "./settings";
+import { termOptions, defaultTerm } from "../../settings";
 import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
   customMessageFormatter
-} from "./util";
+} from "../../util";
 import { toast } from "react-semantic-toasts";
 import moment from "moment";
-import { coursebinCourseLifetime } from "./settings";
+import { coursebinCourseLifetime } from "../../settings";
 
 const errorFormatter = errorFormatterCreator(
   error => {

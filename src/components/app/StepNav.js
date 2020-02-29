@@ -1,7 +1,7 @@
 import React from "react";
 import { Step, Icon } from "semantic-ui-react";
 import { withRouter } from "react-router-dom";
-import { addTrailingSlash } from "./util";
+import { addTrailingSlash } from "../../util";
 
 class StepNav extends React.Component {
   constructor(props) {

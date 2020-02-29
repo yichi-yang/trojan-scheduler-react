@@ -10,14 +10,14 @@ import {
 import { connect } from "react-redux";
 import { Redirect } from "react-router-dom";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { saveTaskResult } from "./actions";
+import { saveTaskResult } from "../../actions";
 import axios from "axios";
 import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
   customMessageFormatter
-} from "./util";
+} from "../../util";
 import { toast } from "react-semantic-toasts";
 
 const errorFormatter = errorFormatterCreator(

@@ -17,7 +17,7 @@ import {
   loadCoursebin,
   loadPreferences,
   loadSetting
-} from "./actions";
+} from "../../actions";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import {
@@ -25,7 +25,7 @@ import {
   responseDataFormatter,
   statusCodeFormatter,
   str2para
-} from "./util";
+} from "../../util";
 
 const errorFormatter = errorFormatterCreator(
   responseDataFormatter,

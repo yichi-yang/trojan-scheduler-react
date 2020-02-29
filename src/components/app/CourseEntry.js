@@ -15,7 +15,7 @@ import {
   toggleCourseInclude,
   toggleCoursePenalize,
   recursiveSetPenalize
-} from "./actions";
+} from "../../actions";
 import GroupSelect from "./GroupSelect";
 
 const colorScheme = [

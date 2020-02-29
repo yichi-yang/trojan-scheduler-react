@@ -11,7 +11,7 @@ import moment from "moment";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { error2message } from "./util";
+import { error2message } from "../../util";
 
 class TaskListPage extends React.Component {
   constructor(props) {
