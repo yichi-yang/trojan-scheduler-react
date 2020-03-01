@@ -9,10 +9,28 @@ import {
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "../RedirectButton";
-import moment from "moment";
 import { connect } from "react-redux";
 import axios from "axios";
-import { error2message } from "../../util";
+import {
+  errorFormatterCreator,
+  responseDataFormatter,
+  statusCodeFormatter,
+  noPermissionFormatter,
+  str2para,
+  getTaskName,
+  getScheduleName
+} from "../../util";
+import TaskDetailWidget from "./TaskDetailWidget";
+import moment from "moment";
+import ScheduleStatus from "./ScheduleStatus";
+
+const errorFormatter = errorFormatterCreator(
+  noPermissionFormatter(
+    "You cannot view this task because you are not its owner."
+  ),
+  responseDataFormatter,
+  statusCodeFormatter
+);
 
 class TaskPage extends React.Component {
   constructor(props) {
@@ -29,6 +47,9 @@ class TaskPage extends React.Component {
     } else if (!props.task_id) {
       this.state.error = "no task id in props";
     }
+    this.state.taskUser = null;
+    this.state.cache = [];
+    this.cancelSource = axios.CancelToken.source();
   }
 
   weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -47,12 +68,28 @@ class TaskPage extends React.Component {
     console.log("load task");
     if (this.props.task_id) {
       axios
-        .get(`/api/tasks/${this.props.task_id}/`)
+        .get(`/api/tasks/${this.props.task_id}/`, {
+          cancelToken: this.cancelSource.token
+        })
         .then(response => {
           this.setState({ taskData: response.data });
+          if (response.data.user) {
+            axios
+              .get(`/api/users/${response.data.user}/`, {
+                cancelToken: this.cancelSource.token
+              })
+              .then(response => this.setState({ taskUser: response.data }));
+          } else {
+            this.setState({
+              taskUser: {
+                avatar: "https://avatars.dicebear.com/v2/bottts/Empty.svg",
+                display_name: "Anonymous"
+              }
+            });
+          }
         })
         .catch(error => {
-          this.setState({ error: error2message(error) });
+          this.setState({ error: errorFormatter(error) });
         });
     }
   };
@@ -70,21 +107,32 @@ class TaskPage extends React.Component {
     }
   }
 
-  render() {
-    let { taskData, error, selected } = this.state;
-    let task_name = null;
-    if (taskData) {
-      if (taskData.name) {
-        task_name = taskData.name;
-      } else {
-        task_name = "Task " + taskData.id;
+  setCache = course => {
+    console.log(`cache ${course.name}`);
+    this.setState(state => {
+      let exists = false;
+      let newCache = state.cache.map(prev => {
+        if (prev.name === course.name && prev.term === course.term) {
+          exists = true;
+          if (moment(course.updated).diff(moment(prev.diff) > 0)) {
+            return course;
+          }
+        }
+        return prev;
+      });
+      if (!exists) {
+        newCache.push(course);
       }
-    } else {
-      task_name = "Task " + this.props.task_id;
-    }
+      return { ...state, cache: newCache };
+    });
+  };
+
+  render() {
+    let { taskData, taskUser, error, selected } = this.state;
+    let task_name = getTaskName(taskData, this.props.task_id);
     let message = null;
     if (error) {
-      message = <Message error>{error}</Message>;
+      message = <Message error>{str2para(error)}</Message>;
     } else if (taskData) {
       switch (taskData.status) {
         case "PD":
@@ -113,12 +161,11 @@ class TaskPage extends React.Component {
     }
     let content = null;
     let details = null;
-    let description = null;
     if (taskData) {
       if (taskData.schedules.length !== 0) {
         content = (
           <>
-            <Accordion styled fluid>
+            <Accordion styled fluid style={{ marginTop: "1rem" }}>
               {[...taskData.schedules]
                 .sort((a, b) => a.id - b.id)
                 .map(schedule => (
@@ -128,14 +175,15 @@ class TaskPage extends React.Component {
                       onClick={() => this.handleSelect(schedule.id)}
                     >
                       <Icon name="dropdown" />
-                      {schedule.name
-                        ? schedule.name
-                        : "Schedule " + schedule.id}
+                      {getScheduleName(schedule)}
+                      <ScheduleStatus schedule={schedule} inline size="mini" />
                     </Accordion.Title>
                     {selected === schedule.id && (
                       <Accordion.Content active>
                         <ScheduleWidget
                           scheduleData={schedule}
+                          cache={this.state.cache}
+                          setCache={this.setCache}
                           topRightWidget={
                             <RedirectButton
                               button={{
@@ -156,18 +204,20 @@ class TaskPage extends React.Component {
           </>
         );
       }
-      if (taskData.status === "DN" || taskData.schedules.length > 0) {
-        details = (
-          <p style={{ color: "gray" }}>
-            Created {moment(taskData.created).fromNow()}
-            {", "}
-            {taskData.count} valid schedules found.
-          </p>
-        );
-      }
-      if (taskData.description) {
-        description = <p style={{ color: "gray" }}>{taskData.description}</p>;
-      }
+      details = (
+        <TaskDetailWidget
+          task={taskData}
+          user={taskUser}
+          canEdit={true}
+          onUpdate={data => this.setState({ taskData: data })}
+          onDelete={() =>
+            this.setState({
+              error: "This task is deleted.",
+              taskData: null
+            })
+          }
+        />
+      );
     } else if (!error) {
       content = (
         <Placeholder>
@@ -183,9 +233,7 @@ class TaskPage extends React.Component {
 
     return (
       <Segment>
-        {" "}
         <Header>{task_name}</Header>
-        {description}
         {details}
         {message}
         {content}

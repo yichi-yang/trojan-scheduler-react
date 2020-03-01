@@ -5,7 +5,6 @@ import {
   Message,
   Item,
   Pagination,
-  Label,
   Icon,
   Popup
 } from "semantic-ui-react";
@@ -14,6 +13,7 @@ import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { error2message } from "../../util";
+import ScheduleStatus from "./ScheduleStatus";
 
 class ScheduleListPage extends React.Component {
   constructor(props) {
@@ -118,21 +118,7 @@ class ScheduleListPage extends React.Component {
                   {schedule.description && (
                     <Item.Extra>{schedule.description}</Item.Extra>
                   )}
-                  <Label.Group style={{ marginTop: 7 }}>
-                    {schedule.saved ? (
-                      <Label color="blue">
-                        <Icon name="save" />
-                        saved
-                      </Label>
-                    ) : null}
-                    {schedule.public ? (
-                      <Label color="green">
-                        <Icon name="child" />
-                        {schedule.user ? "public" : "anonymous"}
-                      </Label>
-                    ) : null}
-                    {this.expireWarning(schedule)}
-                  </Label.Group>
+                  <ScheduleStatus schedule={schedule} />
                 </Item.Content>
               </Item>
             ))}

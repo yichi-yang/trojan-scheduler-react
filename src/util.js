@@ -94,6 +94,13 @@ export const getScheduleName = (schedule, altId) => {
   return "Schedule ?";
 };
 
+export const getTaskName = (task, altId) => {
+  if (task && task.name) return task.name;
+  if (task && task.id) return `Task ${task.id}`;
+  if (altId) return `Task ${altId}`;
+  return "Task ?";
+};
+
 export const error2message = (
   error,
   noPermissionMessage = null,

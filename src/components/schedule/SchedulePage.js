@@ -4,12 +4,10 @@ import {
   Segment,
   Message,
   Header,
-  Loader
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "../RedirectButton";
-import DetailWidget from "./DetailWidget";
-import moment from "moment";
+import DetailWidget from "./ScheduleDetailWidget";
 import { connect } from "react-redux";
 import axios from "axios";
 import {
@@ -20,7 +18,6 @@ import {
   str2para,
   getScheduleName
 } from "../../util";
-import { scheduleSectionLifetime } from "../../settings";
 
 const errorFormatter = errorFormatterCreator(
   noPermissionFormatter(
@@ -55,9 +52,6 @@ class SchedulePage extends React.Component {
         .then(response => {
           let { data } = response;
           this.setState({ scheduleData: data });
-          if (data.sections) {
-            this.updateExpiredSections(data.sections);
-          }
           if (data.user) {
             axios
               .get(`/api/users/${data.user}/`, {
@@ -80,69 +74,6 @@ class SchedulePage extends React.Component {
         });
     }
   };
-
-  updateExpiredSections = sections => {
-    let expiredCourses = sections
-      .filter(
-        section =>
-          moment().diff(moment(section.updated)) >
-          scheduleSectionLifetime.asMilliseconds()
-      )
-      .map(section => ({
-        name: section.course_name,
-        term: section.term
-      }))
-      .filter(
-        (course, index, array) =>
-          array.findIndex(
-            e => e.name === course.name && e.term === course.term
-          ) === index
-      );
-    expiredCourses.forEach(course => {
-      console.log(course.name);
-      this.setState(state => ({
-        updatingCourse: state.updatingCourse.concat(course.name)
-      }));
-      axios
-        .put(
-          `/api/courses/${course.term}/${course.name}/`,
-          {},
-          {
-            cancelToken: this.cancelSource.token
-          }
-        )
-        .then(response => {
-          this.setState(state => ({
-            scheduleData: {
-              ...state.scheduleData,
-              sections: this.updateScheduleSections(
-                state.scheduleData.sections,
-                response.data
-              )
-            },
-            updatingCourse: state.updatingCourse.filter(c => c !== course.name)
-          }));
-        })
-        .catch(error => {
-          this.setState(state => ({
-            updatingCourse: state.updatingCourse.filter(c => c !== course.name)
-          }));
-        });
-    });
-  };
-
-  updateScheduleSections = (sections, course) =>
-    sections.map(section => {
-      let updatedSection = course.sections.find(
-        updatedSection =>
-          updatedSection.id === section.id && course.term === section.term
-      );
-      if (updatedSection) {
-        return { ...section, ...updatedSection, updated: course.updated };
-      } else {
-        return section;
-      }
-    });
 
   componentDidMount() {
     if (!this.state.scheduleData) {
@@ -194,17 +125,6 @@ class SchedulePage extends React.Component {
                 redirect={{ to: `/task/${scheduleData.task}/` }}
               />
             )
-          }
-          footerWidget={
-            this.state.updatingCourse.length > 0 ? (
-              <>
-                Updating{" "}
-                {this.state.updatingCourse
-                  .map(course => course.toUpperCase())
-                  .join(", ")}{" "}
-                <Loader active inline size="tiny" />
-              </>
-            ) : null
           }
         />
       );

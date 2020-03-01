@@ -219,10 +219,6 @@ class CoursebinPage extends React.Component {
     this.props.editSetting({ name, value });
   };
 
-  toggleToolSegment = () => {
-    this.setState({ toolsOpen: !this.state.toolsOpen });
-  };
-
   setGroupHandlerCreator = group => {
     return (e, { node_id }) => {
       this.props.setGroupCourse({ node_id, group });

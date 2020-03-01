@@ -22,3 +22,4 @@ export const defaultTerm = "20201";
 
 export const coursebinCourseLifetime = moment.duration(10, "m");
 export const scheduleSectionLifetime = moment.duration(10, "m");
+export const scheduleExpireAfter = 30;

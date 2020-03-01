@@ -1,5 +1,5 @@
 import React from "react";
-import { Label, Table, Message, Grid, Icon } from "semantic-ui-react";
+import { Label, Table, Message, Grid, Icon, Loader } from "semantic-ui-react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import Rainbow from "rainbowvis.js";
@@ -17,6 +17,7 @@ rainbow.setNumberRange(0, 1);
 class ScheduleWidget extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { updatingCourse: [], scheduleData: props.scheduleData };
     this.cancelSource = axios.CancelToken.source();
   }
 
@@ -26,12 +27,110 @@ class ScheduleWidget extends React.Component {
     return "#" + rainbow.colourAt(1 / (cost / 200 + 1));
   };
 
+  hasExpired = section =>
+    moment().diff(moment(section.updated)) >
+    scheduleSectionLifetime.asMilliseconds();
+
+  updateExpiredSections = () => {
+    let { sections } = this.state.scheduleData;
+    let expiredCourses = sections
+      .filter(this.hasExpired)
+      .map(section => ({
+        name: section.course_name,
+        term: section.term
+      }))
+      .filter(
+        (course, index, array) =>
+          array.findIndex(
+            e => e.name === course.name && e.term === course.term
+          ) === index
+      );
+    expiredCourses.forEach(course => {
+      this.setLoading(course.name);
+      axios
+        .put(
+          `/api/courses/${course.term}/${course.name}/`,
+          {},
+          {
+            cancelToken: this.cancelSource.token
+          }
+        )
+        .then(response => {
+          this.applyUpdate(response.data);
+          this.removeLoading(course.name);
+          if (typeof this.props.setCache === "function") {
+            this.props.setCache(response.data);
+          }
+        })
+        .catch(error => {
+          this.removeLoading(course.name);
+        });
+    });
+  };
+
+  setLoading = course => {
+    this.setState(state => ({
+      updatingCourse: state.updatingCourse.concat(course)
+    }));
+  };
+
+  removeLoading = course => {
+    this.setState(state => ({
+      updatingCourse: state.updatingCourse.filter(c => c !== course)
+    }));
+  };
+
+  updateScheduleSections = (sections, course) =>
+    sections.map(section => {
+      // if the section is newer, ignore incoming course update
+      if (moment(section.updated).diff(moment(course.updated)) > 0) {
+        return section;
+      }
+      let updatedSection = course.sections.find(
+        updatedSection =>
+          updatedSection.id === section.id && course.term === section.term
+      );
+      if (updatedSection && updatedSection) {
+        return { ...section, ...updatedSection, updated: course.updated };
+      } else {
+        return section;
+      }
+    });
+
+  applyUpdate = (courses, callback) => {
+    if (!Array.isArray(courses)) {
+      courses = [courses];
+    }
+    this.setState(state => {
+      let newSections = state.scheduleData.sections;
+      for (let course of courses) {
+        newSections = this.updateScheduleSections(newSections, course);
+      }
+      return {
+        scheduleData: {
+          ...state.scheduleData,
+          sections: newSections
+        }
+      };
+    }, callback);
+  };
+
+  componentDidMount() {
+    if (this.props.cache) {
+      this.applyUpdate(this.props.cache, this.updateExpiredSections);
+    } else {
+      this.updateExpiredSections();
+    }
+  }
+
   componentWillUnmount() {
-    this.cancelSource.cancel("axios requests cancelled on unmount 2");
+    this.cancelSource.cancel(
+      "axios requests cancelled on schedule widget unmount"
+    );
   }
 
   render() {
-    let { scheduleData } = this.props;
+    let { scheduleData } = this.state;
 
     let content = null;
     if (!scheduleData) {
@@ -212,11 +311,21 @@ class ScheduleWidget extends React.Component {
                 </Table.Row>
               ))}
             </Table.Body>
-            {this.props.footerWidget && (
+            {this.state.updatingCourse.length > 0 && (
               <Table.Footer>
                 <Table.Row>
                   <Table.HeaderCell colSpan="8">
-                    {this.props.footerWidget}
+                    <Loader
+                      active
+                      inline
+                      size="tiny"
+                      style={{ marginRight: "0.5em" }}
+                    />
+                    Updating{" "}
+                    {this.state.updatingCourse
+                      .map(course => course.toUpperCase())
+                      .join(", ")}
+                    {"..."}
                   </Table.HeaderCell>
                 </Table.Row>
               </Table.Footer>

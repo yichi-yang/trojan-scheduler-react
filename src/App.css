@@ -99,10 +99,20 @@ ul.share-buttons .sr-only {
   overflow: hidden;
 }
 
+/* schedule and task button groups */
+
 .schedule-button {
   box-sizing: border-box;
   margin-right: 0.8% !important;
   width: 19.2%;
+  padding-left: unset !important;
+  padding-right: unset !important;
+}
+
+.task-button {
+  box-sizing: border-box;
+  margin-right: 0.8% !important;
+  width: 32%;
   padding-left: unset !important;
   padding-right: unset !important;
 }

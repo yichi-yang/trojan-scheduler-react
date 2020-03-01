@@ -18,13 +18,14 @@ import {
   getScheduleName
 } from "../../util";
 import { toast } from "react-semantic-toasts";
+import { scheduleExpireAfter } from "../../settings";
 
 const errorFormatter = errorFormatterCreator(
   responseDataFormatter,
   statusCodeFormatter
 );
 
-class DetailWidget extends React.Component {
+class ScheduleDetailWidget extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -221,10 +222,16 @@ class DetailWidget extends React.Component {
               />
             }
           />
-          <Button content="load" className="schedule-button" />
+          <Button content="load" color="black" className="schedule-button" />
         </>
       );
     }
+
+    let expireAtMoment = moment(schedule.created).add(scheduleExpireAfter, "d");
+    let expireAt =
+      moment().diff(expireAtMoment) < 0
+        ? expireAtMoment.fromNow()
+        : "anytime soon";
 
     return (
       <Grid stackable verticalAlign="middle" style={{ marginBottom: 0 }}>
@@ -250,6 +257,7 @@ class DetailWidget extends React.Component {
                   {schedule.public ? "public" : "private"}
                   {", "}
                   {schedule.saved ? "saved" : "not saved"}
+                  {!schedule.saved && ", expire " + expireAt}
                 </Item.Meta>
 
                 <Item.Extra>{schedule.description}</Item.Extra>
@@ -263,4 +271,4 @@ class DetailWidget extends React.Component {
   }
 }
 
-export default DetailWidget;
+export default ScheduleDetailWidget;
