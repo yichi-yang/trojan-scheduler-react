@@ -4,17 +4,11 @@ import {
   Segment,
   Message,
   Header,
-  Item,
-  Button,
-  Grid,
-  Icon,
-  Modal,
-  Form,
-  Confirm,
   Loader
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "../RedirectButton";
+import DetailWidget from "./DetailWidget";
 import moment from "moment";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -43,10 +37,6 @@ class SchedulePage extends React.Component {
       scheduleData: null,
       scheduleUser: null,
       error: null,
-      loading: false,
-      openModal: null,
-      editTitle: "",
-      editDescription: "",
       updatingCourse: []
     };
     if (!props.schedule_id) {
@@ -154,80 +144,6 @@ class SchedulePage extends React.Component {
       }
     });
 
-  handleUpdate = (e, { values }) => {
-    if (this.props.schedule_id) {
-      this.setState({ loading: true });
-      axios
-        .patch(`/api/schedules/${this.props.schedule_id}/`, values, {
-          cancelToken: this.cancelSource.token
-        })
-        .then(response => {
-          this.setState({
-            scheduleData: response.data,
-            loading: false,
-            openModal: null,
-            error: null
-          });
-        })
-        .catch(error => {
-          this.setState({
-            error: errorFormatter(error),
-            loading: false,
-            openModal: null
-          });
-        });
-    }
-  };
-
-  handleDelete = () => {
-    if (this.props.schedule_id) {
-      this.setState({ loading: true });
-      axios
-        .delete(`/api/schedules/${this.props.schedule_id}/`, {
-          cancelToken: this.cancelSource.token
-        })
-        .then(response => {
-          this.setState({
-            scheduleData: response.data,
-            loading: false,
-            error: "This schedule has been deleted.",
-            openModal: null
-          });
-        })
-        .catch(error => {
-          this.setState({
-            error: errorFormatter(error),
-            loading: false,
-            openModal: null
-          });
-        });
-    }
-  };
-
-  openEditModal = (e, { title, description }) => {
-    this.setState({
-      openModal: "edit",
-      editTitle: title,
-      editDescription: description
-    });
-  };
-
-  openConfirmModal = () => {
-    this.setState({
-      openModal: "delete-confirm"
-    });
-  };
-
-  closeModals = () => {
-    this.setState({ openModal: null });
-  };
-
-  handleEditChange = (e, { name, value }) => {
-    if (this.state.hasOwnProperty(name)) {
-      this.setState({ [name]: value });
-    }
-  };
-
   componentDidMount() {
     if (!this.state.scheduleData) {
       this.loadScheduleData();
@@ -254,185 +170,14 @@ class SchedulePage extends React.Component {
     let schedule_name = getScheduleName(scheduleData, this.props.schedule_id);
     let message = error ? <Message error>{str2para(error)}</Message> : null;
     let content = null;
-    let details = null;
-    let editButtonGroup = null;
-    if (scheduleData) {
-      details = (
-        <Item.Group>
-          <Item>
-            {scheduleUser && (
-              <Item.Image
-                size="tiny"
-                src={scheduleUser.avatar}
-                rounded
-                className="schedule-user-avatar"
-              />
-            )}
-            <Item.Content verticalAlign="middle">
-              <Item.Description>
-                Created {moment(scheduleData.created).fromNow()}
-                {scheduleUser && `, by ${scheduleUser.display_name}`}.
-              </Item.Description>
-              <Item.Meta>
-                {scheduleData.public ? "public" : "private"}
-                {", "}
-                {scheduleData.saved ? "saved" : "not saved"}
-              </Item.Meta>
-              <Item.Extra>{scheduleData.description}</Item.Extra>
-            </Item.Content>
-          </Item>
-        </Item.Group>
-      );
+    let detail = null;
 
+    if (scheduleData) {
       let canEdit =
         this.props.profile &&
         this.props.profile.id &&
         this.props.profile.id === scheduleData.user;
-
       let canAccessTask = canEdit || scheduleData.user === null;
-
-      if (canEdit) {
-        let publishButton = null;
-        let saveButton = null;
-        let editButton = null;
-        let deleteButton = null;
-        let loadButton = null;
-        if (scheduleData.public) {
-          publishButton = (
-            <Button
-              className="schedule-button"
-              color="green"
-              disabled={this.state.loading}
-              onClick={this.handleUpdate}
-              values={{ public: false }}
-            >
-              public
-            </Button>
-          );
-        } else {
-          publishButton = (
-            <Button
-              className="schedule-button"
-              disabled={this.state.loading}
-              onClick={this.handleUpdate}
-              values={{ public: true }}
-            >
-              private
-            </Button>
-          );
-        }
-        if (scheduleData.saved) {
-          saveButton = (
-            <Button
-              className="schedule-button"
-              color="blue"
-              disabled={this.state.loading}
-              onClick={this.handleUpdate}
-              values={{ saved: false }}
-            >
-              saved
-            </Button>
-          );
-        } else {
-          saveButton = (
-            <Button
-              className="schedule-button"
-              disabled={this.state.loading}
-              onClick={this.handleUpdate}
-              values={{ saved: true }}
-            >
-              not saved
-            </Button>
-          );
-        }
-        let charactersLeft = 200 - this.state.editDescription.length;
-        let tooMany = charactersLeft < 0;
-        editButton = (
-          <Modal
-            trigger={
-              <Button icon className="schedule-button">
-                <Icon name="pencil" /> edit
-              </Button>
-            }
-            size="tiny"
-            title={schedule_name}
-            description={scheduleData.description}
-            onOpen={this.openEditModal}
-            onClose={this.closeModals}
-            open={this.state.openModal === "edit"}
-          >
-            <Modal.Header>Edit Schedule</Modal.Header>
-            <Modal.Content>
-              <Form>
-                <Form.Input
-                  label="Title"
-                  name="editTitle"
-                  value={this.state.editTitle}
-                  onChange={this.handleEditChange}
-                />
-                <Form.TextArea
-                  label={`Description (${charactersLeft} characters left)`}
-                  name="editDescription"
-                  value={this.state.editDescription}
-                  onChange={this.handleEditChange}
-                  error={tooMany}
-                />
-              </Form>
-            </Modal.Content>
-            <Modal.Actions>
-              <Button negative content="cancel" onClick={this.closeModals} />
-              <Button
-                positive
-                content="save"
-                values={{
-                  name: this.state.editTitle,
-                  description: this.state.editDescription
-                }}
-                loading={this.state.loading}
-                disabled={this.state.loading || tooMany}
-                onClick={this.handleUpdate}
-              />
-            </Modal.Actions>
-          </Modal>
-        );
-        deleteButton = (
-          <>
-            <Button
-              className="schedule-button"
-              color="red"
-              content="delete"
-              onClick={this.openConfirmModal}
-            />
-            <Confirm
-              open={this.state.openModal === "delete-confirm"}
-              onCancel={this.closeModals}
-              onConfirm={this.handleDelete}
-              content="Are you sure you want to delete this schedule? You cannot undo this action."
-              confirmButton={
-                <Button
-                  primary={false}
-                  color="red"
-                  content="Delete"
-                  onClick={this.openConfirmModal}
-                  loading={this.state.loading}
-                  disabled={this.state.loading}
-                />
-              }
-            />
-          </>
-        );
-        loadButton = <Button content="load" className="schedule-button" />;
-        editButtonGroup = (
-          <>
-            {editButton}
-            {saveButton}
-            {publishButton}
-            {deleteButton}
-            {loadButton}
-          </>
-        );
-      }
-
       content = (
         <ScheduleWidget
           scheduleData={scheduleData}
@@ -463,6 +208,20 @@ class SchedulePage extends React.Component {
           }
         />
       );
+      detail = (
+        <DetailWidget
+          schedule={scheduleData}
+          user={scheduleUser}
+          canEdit={canEdit}
+          onUpdate={data => this.setState({ scheduleData: data })}
+          onDelete={() =>
+            this.setState({
+              error: "This schedule is deleted.",
+              scheduleData: null
+            })
+          }
+        />
+      );
     } else if (!error) {
       content = (
         <Placeholder>
@@ -479,12 +238,7 @@ class SchedulePage extends React.Component {
     return (
       <Segment>
         <Header>{schedule_name}</Header>
-        {details !== null && (
-          <Grid stackable verticalAlign="middle" style={{ marginBottom: 0 }}>
-            <Grid.Column width={8}>{details}</Grid.Column>
-            <Grid.Column width={8}>{editButtonGroup}</Grid.Column>
-          </Grid>
-        )}
+        {detail}
         {message}
         {content}
       </Segment>

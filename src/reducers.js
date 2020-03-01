@@ -295,7 +295,7 @@ export const settingReducer = createReducer(
     },
     [loadSetting]: (state, action) => {
       let setting = action.payload;
-      if (setting !== null) return setting;
+      if (setting !== null) return { ...state, ...setting };
     }
   }
 );

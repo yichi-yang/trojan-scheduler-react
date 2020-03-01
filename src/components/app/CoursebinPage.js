@@ -1,15 +1,12 @@
 import React from "react";
 import {
   Container,
-  Form,
   Accordion,
   Segment,
   Header,
   Icon,
   Message,
-  Transition,
-  Popup,
-  Button
+  Transition
 } from "semantic-ui-react";
 import CourseEntry from "./CourseEntry";
 import {
@@ -19,13 +16,10 @@ import {
   loadCoursebin,
   loadPreferences,
   editSetting,
-  filterSelection,
-  filterPenalize,
   loadSetting
 } from "../../actions";
 import { connect } from "react-redux";
 import axios from "axios";
-import { termOptions, defaultTerm } from "../../settings";
 import {
   errorFormatterCreator,
   responseDataFormatter,
@@ -35,6 +29,8 @@ import {
 import { toast } from "react-semantic-toasts";
 import moment from "moment";
 import { coursebinCourseLifetime } from "../../settings";
+import AddCourseForm from "./AddCourseForm";
+import ToolForm from "./ToolForm";
 
 const errorFormatter = errorFormatterCreator(
   error => {
@@ -59,16 +55,12 @@ const errorFormatter = errorFormatterCreator(
   statusCodeFormatter
 );
 
-class CoursebinWidget extends React.Component {
+class CoursebinPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       loadingCourses: [],
-      term: defaultTerm,
-      course: "",
       toolsOpen: false,
-      assignGroup: false,
-      newGroupId: null,
       loading: []
     };
     this.cancelSource = axios.CancelToken.source();
@@ -112,15 +104,6 @@ class CoursebinWidget extends React.Component {
         });
       });
   };
-
-  handleFetchCourse() {
-    let course = this.props.setting.course.trim().toLowerCase();
-    let term = this.props.setting.term;
-    if (!term || !course || this.state.loadingCourses.includes(course)) {
-      return;
-    }
-    this.fetchCourse(course, term);
-  }
 
   handleRefreshAll = () => {
     this.setState(state => ({
@@ -246,30 +229,12 @@ class CoursebinWidget extends React.Component {
     };
   };
 
-  handleFilterSelection = () => {
-    let { clearedSections, clearedOnly, excludeClosed } = this.props.setting;
-    this.props.filterSelection({ clearedOnly, clearedSections, excludeClosed });
-  };
-
-  handleFilterPenalize = () => {
-    let { exemptedSections } = this.props.setting;
-    this.props.filterPenalize(exemptedSections);
-  };
-
   componentWillUnmount() {
     this.cancelSource.cancel("axios requests cancelled on coursebin unmount");
   }
 
   render() {
-    let {
-      term,
-      course,
-      toolsOpen,
-      clearedSections,
-      clearedOnly,
-      excludeClosed,
-      exemptedSections
-    } = this.props.setting;
+    let { toolsOpen } = this.props.setting;
 
     let groupOptions = [...new Set(this.props.courses.map(node => node.group))];
     let courseEntries = this.props.courses.map(course => (
@@ -280,6 +245,7 @@ class CoursebinWidget extends React.Component {
         {...course}
       />
     ));
+
     let loadingCourseMessage = this.state.loadingCourses.length ? (
       <Message
         info
@@ -297,80 +263,12 @@ class CoursebinWidget extends React.Component {
       );
     }
 
-    let canRefresh = this.props.courses.filter(this.needRefresh).length > 0;
-
-    let courseSuggestion = null;
-    let correctCourseFormat = false;
-    if (course.length !== 0) {
-      let match = course.match(/([a-zA-Z]{2,4})([\W_]*)(\d{1,3}[a-zA-Z]{0,1})/);
-      if (match) {
-        if (match[2] !== "-") {
-          courseSuggestion = match[1] + "-" + match[3];
-        } else {
-          correctCourseFormat = true;
-        }
-      }
-    } else {
-      correctCourseFormat = true;
-    }
-
     return (
       <Container>
         <Segment.Group>
           <Segment>
             <Header>Add Course</Header>
-            <Form onSubmit={e => this.handleFetchCourse(e)}>
-              <Form.Group inline>
-                <Form.Select
-                  name="term"
-                  value={term}
-                  options={termOptions}
-                  onChange={this.handleSettingChange}
-                  width={6}
-                  selection
-                  style={{ width: "100%" }}
-                />
-                <Popup
-                  open={Boolean(courseSuggestion)}
-                  position="top center"
-                  trigger={
-                    <Form.Input
-                      placeholder="Course"
-                      name="course"
-                      value={course}
-                      onChange={this.handleSettingChange}
-                      width={6}
-                      error={!correctCourseFormat}
-                    />
-                  }
-                >
-                  Do you mean{" "}
-                  <Button
-                    style={{
-                      backgroundColor: "#0000",
-                      padding: "0 0.5em",
-                      textDecoration: "underline"
-                    }}
-                    onClick={e => {
-                      e.preventDefault();
-                      this.props.editSetting({
-                        name: "course",
-                        value: courseSuggestion
-                      });
-                    }}
-                  >
-                    {courseSuggestion}
-                  </Button>
-                  ?
-                </Popup>
-                <Form.Button
-                  content="Submit"
-                  width={4}
-                  fluid
-                  disabled={!course}
-                />
-              </Form.Group>
-            </Form>
+            <AddCourseForm onSubmit={this.fetchCourse} />
           </Segment>
 
           <Segment>
@@ -390,104 +288,12 @@ class CoursebinWidget extends React.Component {
                 active={toolsOpen}
                 style={{ marginTop: "14px" }}
               >
-                <Form>
-                  <Form.Group>
-                    <Form.Button
-                      content="Save"
-                      fluid
-                      onClick={this.handleSaveCoursebin}
-                      loading={this.state.loading.includes("save")}
-                      disabled={
-                        this.state.loading.includes("save") ||
-                        !this.props.profile
-                      }
-                      width={3}
-                    />
-                    <Form.Button
-                      content="Load"
-                      fluid
-                      onClick={this.handleLoadCoursebin}
-                      loading={this.state.loading.includes("load")}
-                      disabled={
-                        this.state.loading.includes("load") ||
-                        !this.props.profile
-                      }
-                      width={3}
-                    />
-                    <Form.Button
-                      content="Refresh All"
-                      fluid
-                      loading={this.state.loading.includes("refresh")}
-                      disabled={
-                        this.state.loading.includes("refresh") || !canRefresh
-                      }
-                      onClick={this.handleRefreshAll}
-                      width={3}
-                    />
-                  </Form.Group>
-                  <Form.Field style={{ margin: 0 }}>
-                    <label>Cleared sections</label>
-                  </Form.Field>
-                  <Form.Group inline>
-                    <Form.Input
-                      placeholder="csci-201, csci-201:lab, 29979, etc."
-                      fluid
-                      width={10}
-                      name="clearedSections"
-                      value={clearedSections}
-                      onBlur={this.handleSettingChange}
-                    />
-                    <Form.Checkbox
-                      label="Exclude Closed"
-                      width={2}
-                      name="excludeClosed"
-                      checked={excludeClosed}
-                      onChange={(e, { name }) =>
-                        this.handleSettingChange(e, {
-                          name,
-                          value: !excludeClosed
-                        })
-                      }
-                    />
-                    <Form.Checkbox
-                      label="Cleared Only"
-                      width={2}
-                      name="clearedOnly"
-                      checked={clearedOnly}
-                      onChange={(e, { name }) =>
-                        this.handleSettingChange(e, {
-                          name,
-                          value: !clearedOnly
-                        })
-                      }
-                    />
-                    <Form.Button
-                      content="Filter"
-                      fluid
-                      onClick={this.handleFilterSelection}
-                      width={2}
-                    />
-                  </Form.Group>
-                  <Form.Field style={{ margin: 0 }}>
-                    <label>Exempted courses, components, or sections</label>
-                  </Form.Field>
-                  <Form.Group inline>
-                    <Form.Input
-                      placeholder="math-407, quiz, 29979, etc."
-                      fluid
-                      width={14}
-                      name="exemptedSections"
-                      value={exemptedSections}
-                      onChange={this.handleSettingChange}
-                    />
-                    <Form.Button
-                      content="Exempt"
-                      fluid
-                      onClick={this.handleFilterPenalize}
-                      width={2}
-                    />
-                  </Form.Group>
-                </Form>
+                <ToolForm
+                  onLoad={this.handleLoadCoursebin}
+                  onSave={this.handleSaveCoursebin}
+                  onRefresh={this.handleRefreshAll}
+                  loading={this.state.loading}
+                />
               </Accordion.Content>
             </Accordion>
           </Segment>
@@ -528,8 +334,6 @@ export default connect(
     loadCoursebin,
     loadPreferences,
     editSetting,
-    filterSelection,
-    filterPenalize,
     loadSetting
   }
-)(CoursebinWidget);
+)(CoursebinPage);

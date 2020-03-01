@@ -1,6 +1,6 @@
 import React from "react";
 import { Step } from "semantic-ui-react";
-import CoursebinWidget from "./CoursebinWidget";
+import CoursebinPage from "./CoursebinPage";
 import { Route, Switch, Redirect } from "react-router-dom";
 import StepNav from "./StepNav";
 import PreferencesWidget from "./PreferencesWidget";
@@ -44,7 +44,7 @@ class AppPage extends React.Component {
         <Switch>
           <Route
             path={join(path, "coursebin/")}
-            component={CoursebinWidget}
+            component={CoursebinPage}
             exact
           />
           <Route
