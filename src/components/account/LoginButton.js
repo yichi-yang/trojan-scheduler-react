@@ -26,6 +26,8 @@ import {
   statusCodeFormatter,
   str2para
 } from "../../util";
+import { toast } from "react-semantic-toasts";
+import { withRouter } from "react-router-dom";
 
 const errorFormatter = errorFormatterCreator(
   responseDataFormatter,
@@ -108,8 +110,13 @@ class LoginButton extends React.Component {
         this.props.loadSetting(response.data.setting);
       })
       .catch(error => {
-        console.log(error);
-        console.log(String(error));
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Load User Information`,
+          list: errorFormatter(error).split("\n"),
+          time: 10000
+        });
       });
   };
 
@@ -118,11 +125,9 @@ class LoginButton extends React.Component {
   handleClose = () =>
     this.setState({ modalOpen: false, username: "", password: "" });
 
-  handleMenuSelect = (e, { value }) => {
-    if (value === "sign-out") {
-      this.props.clearUserState();
-      this.setState({ userProfile: {} });
-    }
+  handleSignOut = () => {
+    this.props.clearUserState();
+    this.setState({ userProfile: {} });
   };
 
   componentDidMount() {
@@ -131,8 +136,6 @@ class LoginButton extends React.Component {
       this.getUserProfile(tokens);
     }
   }
-
-  componentDidUpdate() {}
 
   componentWillUnmount() {
     this.cancelSource.cancel(
@@ -211,31 +214,21 @@ class LoginButton extends React.Component {
         </Image>
       );
       let display_name = profile ? profile.display_name : "?";
-      const options = [
-        {
-          key: "user",
-          text: (
-            <span>
-              Signed in as <strong>{display_name}</strong>
-            </span>
-          ),
-          disabled: true
-        },
-        { key: "profile", text: "Your Profile" },
-        { key: "stars", text: "Your Stars" },
-        { key: "explore", text: "Explore" },
-        { key: "integrations", text: "Integrations" },
-        { key: "help", text: "Help" },
-        { key: "settings", text: "Settings" },
-        { key: "sign-out", text: "Sign Out", value: "sign-out" }
-      ];
+
       button = (
-        <Dropdown
-          trigger={avatarWidget}
-          options={options}
-          icon={null}
-          onChange={this.handleMenuSelect}
-        />
+        <Dropdown trigger={avatarWidget} icon={null} value={null}>
+          <Dropdown.Menu>
+            <Dropdown.Item disabled>
+              Signed in as <strong>{display_name}</strong>
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => this.props.history.push("/account/")}>
+              My Profile
+            </Dropdown.Item>
+            <Dropdown.Item onClick={(this, this.handleSignOut)}>
+              Sign Out
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
       );
     }
     return button;
@@ -255,4 +248,4 @@ export default connect(
     loadPreferences,
     loadSetting
   }
-)(LoginButton);
+)(withRouter(LoginButton));

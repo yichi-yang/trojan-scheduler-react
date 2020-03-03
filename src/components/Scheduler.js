@@ -17,6 +17,7 @@ import TaskListPage from "./schedule/TaskListPage";
 import ScheduleListPage from "./schedule/ScheduleListPage";
 import { SemanticToastContainer } from "react-semantic-toasts";
 import "react-semantic-toasts/styles/react-semantic-alert.css";
+import AccountPage from "./account/AccountPage";
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -102,6 +103,7 @@ class Scheduler extends React.Component {
             />
             <Route path="/task/" exact component={TaskListPage} />
             <Route path="/schedule/" exact component={ScheduleListPage} />
+            <Route path="/account/" exact component={AccountPage} />
             <Route component={NotFound} />
           </Switch>
         </Container>

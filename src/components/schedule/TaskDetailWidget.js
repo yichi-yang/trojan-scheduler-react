@@ -6,10 +6,13 @@ import {
   Icon,
   Modal,
   Form,
-  Confirm
+  Confirm,
+  Popup
 } from "semantic-ui-react";
 import moment from "moment";
 import axios from "axios";
+import { loadCoursebin, loadPreferences, loadSetting } from "../../actions";
+import { connect } from "react-redux";
 import {
   errorFormatterCreator,
   responseDataFormatter,
@@ -18,6 +21,7 @@ import {
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import { scheduleExpireAfter } from "../../settings";
+import ProfileCard from "../account/ProfileCard";
 
 const errorFormatter = errorFormatterCreator(
   responseDataFormatter,
@@ -89,6 +93,44 @@ class TaskDetailWidget extends React.Component {
           list: errorFormatter(error).split("\n"),
           time: 10000
         });
+      });
+  };
+
+  handleLoadCoursebin = (e, { name }) => {
+    let { task } = this.props;
+    this.setState(state => ({
+      loading: state.loading.concat(name)
+    }));
+    axios
+      .get(`/api/task-data/${task.request_data}/`, {
+        cancelToken: this.cancelSource.token
+      })
+      .then(response => {
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== name)
+        }));
+        this.props.loadCoursebin(response.data.coursebin);
+        this.props.loadPreferences(response.data.preference);
+        this.props.loadSetting(response.data.setting);
+        toast({
+          type: "success",
+          icon: "cloud download",
+          title: "Settings Loaded",
+          description: "Successfully loaded your settings.",
+          time: 10000
+        });
+      })
+      .catch(error => {
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Load Settings`,
+          description: errorFormatter(error),
+          time: 10000
+        });
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== name)
+        }));
       });
   };
 
@@ -201,7 +243,15 @@ class TaskDetailWidget extends React.Component {
               />
             }
           />
-          <Button content="load" color="black" className="task-button" />
+          <Button
+            content="use settings"
+            color="black"
+            className="task-button"
+            name="load"
+            onClick={this.handleLoadCoursebin}
+            loading={this.state.loading.includes("load")}
+            disabled={this.state.loading.includes("load")}
+          />
         </>
       );
     }
@@ -218,11 +268,20 @@ class TaskDetailWidget extends React.Component {
           <Item.Group>
             <Item>
               {user && (
-                <Item.Image
-                  size="tiny"
-                  src={user.avatar}
-                  rounded
-                  className="schedule-user-avatar"
+                <Popup
+                  as={ProfileCard}
+                  {...user}
+                  basic
+                  on="click"
+                  trigger={
+                    <Item.Image
+                      as="a"
+                      size="tiny"
+                      src={user.avatar}
+                      rounded
+                      className="schedule-user-avatar"
+                    />
+                  }
                 />
               )}
 
@@ -241,10 +300,14 @@ class TaskDetailWidget extends React.Component {
             </Item>
           </Item.Group>
         </Grid.Column>
-        <Grid.Column width={6} textAlign="right">{editButtonGroup}</Grid.Column>
+        <Grid.Column width={6} textAlign="right">
+          {editButtonGroup}
+        </Grid.Column>
       </Grid>
     );
   }
 }
 
-export default TaskDetailWidget;
+export default connect(null, { loadCoursebin, loadPreferences, loadSetting })(
+  TaskDetailWidget
+);

@@ -46,7 +46,12 @@ class AvatarSelect extends React.Component {
         choices.push(shortid.generate());
       }
       if (this.props.default) {
-        choices[0] = this.props.default;
+        let match = this.props.default.match(
+          /https:\/\/avatars\.dicebear\.com\/v2\/human\/(\w+)\.svg/
+        );
+        if (match && match[1]) {
+          choices[0] = match[1];
+        }
       }
       this.setState({ choices, selected: choices[0] });
     } else {

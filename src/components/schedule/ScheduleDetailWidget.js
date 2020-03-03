@@ -6,10 +6,14 @@ import {
   Icon,
   Modal,
   Form,
-  Confirm
+  Confirm,
+  Responsive,
+  Popup
 } from "semantic-ui-react";
 import moment from "moment";
 import axios from "axios";
+import { loadCoursebin, loadPreferences, loadSetting } from "../../actions";
+import { connect } from "react-redux";
 import ToggleButton from "./ToggleButton";
 import {
   errorFormatterCreator,
@@ -19,6 +23,7 @@ import {
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import { scheduleExpireAfter } from "../../settings";
+import ProfileCard from "../account/ProfileCard";
 
 const errorFormatter = errorFormatterCreator(
   responseDataFormatter,
@@ -90,6 +95,44 @@ class ScheduleDetailWidget extends React.Component {
           list: errorFormatter(error).split("\n"),
           time: 10000
         });
+      });
+  };
+
+  handleLoadCoursebin = (e, { name }) => {
+    let { schedule } = this.props;
+    this.setState(state => ({
+      loading: state.loading.concat(name)
+    }));
+    axios
+      .get(`/api/task-data/${schedule.request_data}/`, {
+        cancelToken: this.cancelSource.token
+      })
+      .then(response => {
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== name)
+        }));
+        this.props.loadCoursebin(response.data.coursebin);
+        this.props.loadPreferences(response.data.preference);
+        this.props.loadSetting(response.data.setting);
+        toast({
+          type: "success",
+          icon: "cloud download",
+          title: "Settings Loaded",
+          description: "Successfully loaded your settings.",
+          time: 10000
+        });
+      })
+      .catch(error => {
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Load Settings`,
+          description: errorFormatter(error),
+          time: 10000
+        });
+        this.setState(state => ({
+          loading: state.loading.filter(item => item !== name)
+        }));
       });
   };
 
@@ -222,7 +265,19 @@ class ScheduleDetailWidget extends React.Component {
               />
             }
           />
-          <Button content="load" color="black" className="schedule-button" />
+          <Button
+            color="black"
+            className="schedule-button"
+            name="load"
+            onClick={this.handleLoadCoursebin}
+            loading={this.state.loading.includes("load")}
+            disabled={this.state.loading.includes("load")}
+          >
+            <Responsive as="span" minWidth={600}>
+              use{" "}
+            </Responsive>
+            settings
+          </Button>
         </>
       );
     }
@@ -239,11 +294,20 @@ class ScheduleDetailWidget extends React.Component {
           <Item.Group>
             <Item>
               {user && (
-                <Item.Image
-                  size="tiny"
-                  src={user.avatar}
-                  rounded
-                  className="schedule-user-avatar"
+                <Popup
+                  as={ProfileCard}
+                  {...user}
+                  basic
+                  on="click"
+                  trigger={
+                    <Item.Image
+                      as="a"
+                      size="tiny"
+                      src={user.avatar}
+                      rounded
+                      className="schedule-user-avatar"
+                    />
+                  }
                 />
               )}
 
@@ -271,4 +335,6 @@ class ScheduleDetailWidget extends React.Component {
   }
 }
 
-export default ScheduleDetailWidget;
+export default connect(null, { loadCoursebin, loadPreferences, loadSetting })(
+  ScheduleDetailWidget
+);
