@@ -9,7 +9,8 @@ import {
   Input,
   Icon,
   Divider,
-  Grid
+  Grid,
+  Responsive
 } from "semantic-ui-react";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -183,13 +184,11 @@ class AccountPage extends React.Component {
     if (nickname)
       displayNameOptions.push({ key: "nickname", text: nickname, value: "NC" });
     return (
-      <Segment padded="very">
+      <Segment className="dynamic" padded="very">
         <Grid stackable>
           <Grid.Column width="6">
             <Header>My Profile</Header>
-            <ProfileCard
-              {...this.props.profile}
-            />
+            <ProfileCard {...this.props.profile} />
           </Grid.Column>
           <Grid.Column width="10">
             <Header>Account Settings</Header>
@@ -211,7 +210,17 @@ class AccountPage extends React.Component {
                     </Label>
                   )}
                   {!email_verified && email && (
-                    <Label color="red" content="not verified" />
+                    <Label color="red">
+                      <Responsive as="span" minWidth={350}>
+                        not verified
+                      </Responsive>
+                      <Responsive
+                        as={Icon}
+                        maxWidth={349}
+                        name="times"
+                        style={{ margin: "0 0.2em" }}
+                      />
+                    </Label>
                   )}
                 </Input>
               </Form.Field>
