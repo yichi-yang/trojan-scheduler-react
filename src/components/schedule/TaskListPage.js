@@ -5,7 +5,8 @@ import {
   Message,
   Item,
   Pagination,
-  Label
+  Label,
+  Header
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -104,40 +105,44 @@ class TaskListPage extends React.Component {
     let content = null;
     let pagination = null;
     if (!loading && task_list && task_list.results) {
-      content = (
-        <Item.Group divided>
-          {task_list.results.map(task => {
-            let errorMessage = this.taskErrorMessage(task);
-            return (
-              <Item key={task.id}>
-                <Item.Content>
-                  <Item.Header as={Link} to={task.id + "/"}>
-                    {task.name ? task.name : `Task ${task.id}`}
-                  </Item.Header>
-                  <Item.Meta>
-                    {task.count} schedules, created{" "}
-                    {moment(task.created).fromNow()}
-                  </Item.Meta>
-                  {(errorMessage || task.description) && (
-                    <Item.Extra style={{ marginBottom: 7 }}>
-                      {task.description && <p>{task.description}</p>}
-                      {errorMessage}
-                    </Item.Extra>
-                  )}
-                  {this.taskStatusLabel(task)}
-                </Item.Content>
-              </Item>
-            );
-          })}
-        </Item.Group>
-      );
-      pagination = (
-        <Pagination
-          activePage={this.state.page}
-          onPageChange={this.handlePaginationChange}
-          totalPages={task_list.total_pages}
-        />
-      );
+      if (task_list.results.length === 0) {
+        content = <Message info>You haven't created any tasks.</Message>;
+      } else {
+        content = (
+          <Item.Group divided>
+            {task_list.results.map(task => {
+              let errorMessage = this.taskErrorMessage(task);
+              return (
+                <Item key={task.id}>
+                  <Item.Content>
+                    <Item.Header as={Link} to={task.id + "/"}>
+                      {task.name ? task.name : `Task ${task.id}`}
+                    </Item.Header>
+                    <Item.Meta>
+                      {task.count} schedules, created{" "}
+                      {moment(task.created).fromNow()}
+                    </Item.Meta>
+                    {(errorMessage || task.description) && (
+                      <Item.Extra style={{ marginBottom: 7 }}>
+                        {task.description && <p>{task.description}</p>}
+                        {errorMessage}
+                      </Item.Extra>
+                    )}
+                    {this.taskStatusLabel(task)}
+                  </Item.Content>
+                </Item>
+              );
+            })}
+          </Item.Group>
+        );
+        pagination = (
+          <Pagination
+            activePage={this.state.page}
+            onPageChange={this.handlePaginationChange}
+            totalPages={task_list.total_pages}
+          />
+        );
+      }
     }
 
     let placeholder = null;
@@ -156,12 +161,16 @@ class TaskListPage extends React.Component {
 
     return (
       <>
-        <Segment>
-          {/* <Header>Tasks</Header> */}
-          {message}
-          {placeholder}
-          {content}
-        </Segment>
+        <Segment.Group>
+          <Segment padded className="dynamic">
+            <Header as="h1">Tasks</Header>
+          </Segment>
+          <Segment padded className="dynamic">
+            {message}
+            {placeholder}
+            {content}
+          </Segment>
+        </Segment.Group>
         {pagination}
       </>
     );

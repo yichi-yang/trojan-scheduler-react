@@ -138,12 +138,11 @@ ul.share-buttons .sr-only {
 
 /* fix account page segment padding */
 
-.ui.dynamic.very.padded.segment {
-  padding: 3em;
-}
-
 @media only screen and (max-width: 767px) {
   .ui.dynamic.very.padded.segment {
+    padding: 1em;
+  }
+  .ui.dynamic.padded.segment {
     padding: 1em;
   }
 }

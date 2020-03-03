@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Placeholder,
-  Segment,
-  Message,
-  Header,
-} from "semantic-ui-react";
+import { Placeholder, Segment, Message, Header } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "../RedirectButton";
 import DetailWidget from "./ScheduleDetailWidget";

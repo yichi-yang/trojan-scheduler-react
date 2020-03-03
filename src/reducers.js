@@ -284,7 +284,9 @@ export const settingReducer = createReducer(
     clearedSections: "",
     clearedOnly: false,
     excludeClosed: false,
-    exemptedSections: ""
+    exemptedSections: "",
+    savedOnly: true,
+    publicOnly: false
   },
   {
     [editSetting]: (state, action) => {

@@ -6,29 +6,51 @@ import {
   Item,
   Pagination,
   Icon,
-  Popup
+  Popup,
+  Header,
+  Button,
+  Responsive
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
+import { editSetting } from "../../actions";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { error2message } from "../../util";
 import ScheduleStatus from "./ScheduleStatus";
 
+const str2bool = str => ["", "True", "TRUE", "true"].includes(str);
+
 class ScheduleListPage extends React.Component {
   constructor(props) {
     super(props);
-    let page = 1;
+    let page = 1,
+      savedOnly = props.setting.savedOnly,
+      publicOnly = props.setting.publicOnly;
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
-      page = params.get("page");
+      if (params.has("page")) page = Number(params.get("page"));
+      if (params.has("saved")) savedOnly = str2bool(params.get("saved"));
+      if (params.has("public")) publicOnly = str2bool(params.get("public"));
     }
-    this.state = { schedule_list: null, error: null, loading: false, page };
+    this.state = {
+      schedule_list: null,
+      error: null,
+      loading: false,
+      page,
+      savedOnly,
+      publicOnly
+    };
   }
 
   loadScheduleData = () => {
+    let { page, savedOnly, publicOnly } = this.state;
+    let query = new URLSearchParams();
+    query.set("page", page);
+    if (savedOnly) query.set("saved", savedOnly);
+    if (publicOnly) query.set("public", publicOnly);
     axios
-      .get(`/api/schedules/?page=${this.state.page}`)
+      .get(`/api/schedules/?${query.toString()}`)
       .then(response => {
         this.setState({ schedule_list: response.data, loading: false });
       })
@@ -44,13 +66,32 @@ class ScheduleListPage extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    let page = 1;
+    let page = 1,
+      savedOnly = true,
+      publicOnly = false;
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
-      page = params.get("page");
-    }
-    if (this.state.page !== page) {
-      this.setState({ page }, this.loadScheduleData);
+      if (params.has("page")) page = Number(params.get("page"));
+      if (params.has("saved")) savedOnly = str2bool(params.get("saved"));
+      if (params.has("public")) publicOnly = str2bool(params.get("public"));
+      if (
+        this.state.page !== page ||
+        this.state.savedOnly !== savedOnly ||
+        this.state.publicOnly !== publicOnly
+      ) {
+        this.setState({ page, publicOnly, savedOnly }, this.loadScheduleData);
+      }
+    } else if (
+      this.props.setting.savedOnly !== this.state.savedOnly ||
+      this.props.setting.publicOnly !== this.state.publicOnly
+    ) {
+      this.setState(
+        {
+          savedOnly: this.props.setting.savedOnly,
+          publicOnly: this.props.setting.publicOnly
+        },
+        this.loadScheduleData
+      );
     }
     if (Boolean(prevProps.tokens) !== Boolean(this.props.tokens)) {
       this.loadScheduleData();
@@ -59,7 +100,28 @@ class ScheduleListPage extends React.Component {
 
   handlePaginationChange = (e, { activePage }) => {
     let query = new URLSearchParams();
+    let { savedOnly, publicOnly } = this.state;
     query.set("page", activePage);
+    query.set("saved", savedOnly);
+    query.set("public", publicOnly);
+    this.props.history.push(
+      this.props.location.pathname + "?" + query.toString()
+    );
+  };
+
+  handleSavedPublicChange = (e, { name }) => {
+    let { savedOnly, publicOnly } = this.state;
+    if (name === "saved") {
+      savedOnly = !savedOnly;
+      this.props.editSetting({ name: "savedOnly", value: savedOnly });
+    }
+    if (name === "public") {
+      publicOnly = !publicOnly;
+      this.props.editSetting({ name: "publicOnly", value: publicOnly });
+    }
+    let query = new URLSearchParams();
+    query.set("saved", savedOnly);
+    query.set("public", publicOnly);
     this.props.history.push(
       this.props.location.pathname + "?" + query.toString()
     );
@@ -148,20 +210,54 @@ class ScheduleListPage extends React.Component {
       );
     }
 
+    let { savedOnly, publicOnly } = this.state;
+
     return (
       <>
-        <Segment>
-          {/* <Header>Tasks</Header> */}
-          {message}
-          {placeholder}
-          {content}
-        </Segment>
+        <Segment.Group>
+          <Segment padded className="dynamic">
+            <Header as="h1" style={{ display: "inline-block" }}>
+              Schedules
+            </Header>
+            <Button.Group floated="right">
+              <Button
+                color={savedOnly ? "green" : null}
+                name="saved"
+                onClick={this.handleSavedPublicChange}
+              >
+                <Responsive as="span" minWidth={419}>
+                  saved
+                </Responsive>
+                <Responsive as={Icon} name="save" fitted maxWidth={420} />
+              </Button>
+              <Button
+                color={publicOnly ? "blue" : null}
+                name="public"
+                onClick={this.handleSavedPublicChange}
+              >
+                <Responsive as="span" minWidth={419}>
+                  public
+                </Responsive>
+                <Responsive as={Icon} name="child" fitted maxWidth={420} />
+              </Button>
+            </Button.Group>
+          </Segment>
+          <Segment padded className="dynamic">
+            {message}
+            {placeholder}
+            {content}
+          </Segment>
+        </Segment.Group>
         {pagination}
       </>
     );
   }
 }
 
-export default connect(state => ({
-  tokens: state.user.tokens
-}))(ScheduleListPage);
+export default connect(
+  state => ({
+    tokens: state.user.tokens,
+    setting: state.setting
+  }),
+  { editSetting }
+)(ScheduleListPage);
