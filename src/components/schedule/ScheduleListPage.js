@@ -175,7 +175,15 @@ class ScheduleListPage extends React.Component {
     let pagination = null;
     if (!loading && schedule_list && schedule_list.results) {
       if (schedule_list.results.length === 0) {
-        content = <Message info>You haven't saved any schedules.</Message>;
+        content = (
+          <Header icon textAlign="center">
+            <Icon name="ellipsis horizontal" />
+            No Schedule Found
+            <Header.Subheader>
+              Use the scheduler to create schedules.
+            </Header.Subheader>
+          </Header>
+        );
       } else {
         content = (
           <Item.Group divided>

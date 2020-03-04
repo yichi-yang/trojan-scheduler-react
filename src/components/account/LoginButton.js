@@ -199,6 +199,7 @@ class LoginButton extends React.Component {
                   this.props.history.push("/password/forget/");
                 }}
                 style={{ backgroundColor: "#0000", marginTop: "-1em" }}
+                type="button"
               />
 
               <Button
@@ -207,6 +208,7 @@ class LoginButton extends React.Component {
                 size="large"
                 onClick={this.login}
                 loading={loadingLogin}
+                type="submit"
               >
                 Login
               </Button>

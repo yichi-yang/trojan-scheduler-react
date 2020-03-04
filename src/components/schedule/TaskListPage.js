@@ -7,7 +7,8 @@ import {
   Pagination,
   Label,
   Header,
-  Responsive
+  Responsive,
+  Icon
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -98,7 +99,7 @@ class TaskListPage extends React.Component {
       this.props.location.pathname + "?" + query.toString()
     );
   };
-  
+
   componentWillUnmount() {
     this.cancelSource.cancel(
       "axios requests cancelled on task list page unmount"
@@ -118,7 +119,15 @@ class TaskListPage extends React.Component {
     let pagination = null;
     if (!loading && task_list && task_list.results) {
       if (task_list.results.length === 0) {
-        content = <Message info>You haven't created any tasks.</Message>;
+        content = (
+          <Header icon textAlign="center">
+            <Icon name="ellipsis horizontal" />
+            No Task Found
+            <Header.Subheader>
+              Use the scheduler to create tasks.
+            </Header.Subheader>
+          </Header>
+        );
       } else {
         content = (
           <Item.Group divided>

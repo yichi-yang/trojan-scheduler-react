@@ -239,9 +239,13 @@ class AccountPage extends React.Component {
   render() {
     if (this.state.passwordUpdated) {
       return (
-        <Message success>
-          Your password is updated. Please sign in with your new credentials.
-        </Message>
+        <Header icon textAlign="center">
+          <Icon name="check" />
+          Password Updated
+          <Header.Subheader>
+            Log in with your new credentials to continue.
+          </Header.Subheader>
+        </Header>
       );
     } else if (!this.state.profile) {
       return (

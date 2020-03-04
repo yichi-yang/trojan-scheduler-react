@@ -24,6 +24,7 @@ class PasswordResetPage extends React.Component {
       if (params.has("token")) token = params.get("token");
       if (params.has("success")) success = true;
     }
+    if (token) props.history.replace(".");
     this.state = {
       token,
       loading: false,
@@ -80,14 +81,13 @@ class PasswordResetPage extends React.Component {
         className="dynamic"
         padded="very"
         loading={loading}
-        textAlign="center"
         style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
       >
-        <Header size="large" as="h1">
+        <Header size="large" as="h1" textAlign="center">
           Password Reset
         </Header>
         {success && (
-          <Header icon>
+          <Header icon  textAlign="center">
             <Icon name="check" />
             Password Updated
             <Header.Subheader>Log in to continue.</Header.Subheader>
@@ -95,7 +95,7 @@ class PasswordResetPage extends React.Component {
         )}
         {!invalid_token && error && <Message error>{error}</Message>}
         {invalid_token && (
-          <Header icon>
+          <Header icon  textAlign="center">
             <Icon name="times" />
             Invalid Token
             <Header.Subheader>
@@ -105,11 +105,11 @@ class PasswordResetPage extends React.Component {
           </Header>
         )}
         {!success && !token && (
-          <Header icon>
+          <Header icon textAlign="center">
             <Icon name="expand" />
             No Token
             <Header.Subheader>
-              Are you sure you copied the entire link?
+              Please use the link in the email to reset password.
             </Header.Subheader>
           </Header>
         )}

@@ -60,16 +60,15 @@ class PasswordForgetPage extends React.Component {
         padded="very"
         loading={loading}
         style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
-        textAlign="center"
       >
-        <Header size="large" as="h1">
+        <Header size="large" as="h1" textAlign="center">
           Forget Password
           <Header.Subheader>
             Please enter the email you used to register account with.
           </Header.Subheader>
         </Header>
         {success && (
-          <Header icon>
+          <Header icon textAlign="center">
             <Icon name="send" />
             Email Sent
             <Header.Subheader>
