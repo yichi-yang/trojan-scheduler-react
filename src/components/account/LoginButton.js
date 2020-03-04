@@ -4,7 +4,6 @@ import {
   Message,
   Modal,
   Form,
-  Segment,
   Image,
   Placeholder,
   Dropdown
@@ -169,8 +168,8 @@ class LoginButton extends React.Component {
           open={this.state.modalOpen}
         >
           <Modal.Header>Sign In</Modal.Header>
-          <Form error={Boolean(loginError)} size="large">
-            <Segment stacked>
+          <Modal.Content>
+            <Form error={Boolean(loginError)} size="large">
               <Message error>{str2para(loginError)}</Message>
               <Form.Input
                 fluid
@@ -193,6 +192,16 @@ class LoginButton extends React.Component {
               />
 
               <Button
+                content="Forget password?"
+                fluid
+                onClick={() => {
+                  this.handleClose();
+                  this.props.history.push("/password/forget/");
+                }}
+                style={{ backgroundColor: "#0000", marginTop: "-1em" }}
+              />
+
+              <Button
                 color="teal"
                 fluid
                 size="large"
@@ -201,8 +210,8 @@ class LoginButton extends React.Component {
               >
                 Login
               </Button>
-            </Segment>
-          </Form>
+            </Form>
+          </Modal.Content>
         </Modal>
       );
     } else {

@@ -285,7 +285,7 @@ export const settingReducer = createReducer(
     clearedOnly: false,
     excludeClosed: false,
     exemptedSections: "",
-    savedOnly: true,
+    savedOnly: false,
     publicOnly: false
   },
   {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Segment, Header, Icon } from "semantic-ui-react";
+import { Segment, Header, Icon, Message, Form } from "semantic-ui-react";
 import axios from "axios";
 import {
   errorFormatterCreator,
@@ -14,7 +14,7 @@ const errorFormatter = errorFormatterCreator(
   statusCodeFormatter
 );
 
-class EmailVerificationPage extends React.Component {
+class PasswordResetPage extends React.Component {
   constructor(props) {
     super(props);
     let token = null;
@@ -28,18 +28,24 @@ class EmailVerificationPage extends React.Component {
       token,
       loading: false,
       error: null,
-      success
+      success,
+      password: "",
+      password2: ""
     };
     this.cancelSource = axios.CancelToken.source();
   }
 
-  verifyEmail = () => {
-    let { token } = this.state;
-    this.setState({ loading: true });
+  resetPassword = () => {
+    let { token, password, password2 } = this.state;
+    if (password !== password2) {
+      this.setState({ error: "Passwords do not match" });
+      return;
+    }
+    this.setState({ loading: true, error: null });
     axios
       .post(
-        `/api/verify-email/`,
-        {},
+        `/api/password/reset/`,
+        { password },
         {
           headers: {
             Authorization: "Bearer " + token
@@ -59,32 +65,36 @@ class EmailVerificationPage extends React.Component {
       });
   };
 
-  componentDidMount() {
-    if (this.state.token) {
-      this.verifyEmail();
+  handlePasswordChange = (e, { name, value }) => {
+    if (this.state[name] !== undefined) {
+      this.setState({ [name]: value });
     }
-  }
+  };
 
   render() {
-    let { success, loading, error, token } = this.state;
+    let { success, loading, error, token, password, password2 } = this.state;
+    let invalid_token = error === 401;
+
     return (
       <Segment
         className="dynamic"
         padded="very"
         loading={loading}
         textAlign="center"
+        style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
       >
         <Header size="large" as="h1">
-          Verify Your Email
+          Password Reset
         </Header>
         {success && (
           <Header icon>
             <Icon name="check" />
-            Email Verified
+            Password Updated
             <Header.Subheader>Log in to continue.</Header.Subheader>
           </Header>
         )}
-        {error && error === 401 && (
+        {!invalid_token && error && <Message error>{error}</Message>}
+        {invalid_token && (
           <Header icon>
             <Icon name="times" />
             Invalid Token
@@ -92,13 +102,6 @@ class EmailVerificationPage extends React.Component {
               The token is not valid or has expired. Are you sure you copied the
               entire link?
             </Header.Subheader>
-          </Header>
-        )}
-        {error && error !== 401 && (
-          <Header icon>
-            <Icon name="times" />
-            Failed to Verify
-            <Header.Subheader>{error}</Header.Subheader>
           </Header>
         )}
         {!success && !token && (
@@ -110,9 +113,40 @@ class EmailVerificationPage extends React.Component {
             </Header.Subheader>
           </Header>
         )}
+        {!invalid_token && !success && token && (
+          <Form>
+            <Form.Input
+              required
+              fluid
+              value={password}
+              label="Password"
+              name="password"
+              onChange={this.handlePasswordChange}
+              type="password"
+            />
+            <Form.Input
+              required
+              fluid
+              value={password2}
+              label="Confirm password"
+              name="password2"
+              onChange={this.handlePasswordChange}
+              type="password"
+              error={password !== password2 ? "Passwords do not match." : null}
+            />
+            <Form.Button
+              type="submit"
+              fluid
+              loading={loading}
+              disabled={loading}
+              onClick={this.resetPassword}
+              content="Submit"
+            />
+          </Form>
+        )}
       </Segment>
     );
   }
 }
 
-export default EmailVerificationPage;
+export default PasswordResetPage;

@@ -40,7 +40,7 @@ const LandingPage = () => {
         <Card.Group itemsPerRow="3" stackable>
           <Card href="#">
             <Image
-              src="https://source.unsplash.com/random/600x400/?start"
+              src="https://source.unsplash.com/random/600x400/?clock"
               wrapped
               ui={false}
             />
@@ -59,7 +59,7 @@ const LandingPage = () => {
           </Card>
           <Card href="#">
             <Image
-              src="https://source.unsplash.com/random/600x400/?question-mark"
+              src="https://source.unsplash.com/random/600x400/?schedule"
               wrapped
               ui={false}
             />
@@ -78,7 +78,7 @@ const LandingPage = () => {
           </Card>
           <Card href="#">
             <Image
-              src="https://source.unsplash.com/random/600x400/?change"
+              src="https://source.unsplash.com/random/600x400/?time"
               wrapped
               ui={false}
             />

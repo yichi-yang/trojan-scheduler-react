@@ -29,6 +29,7 @@ class ScheduleListPage extends React.Component {
     let page = 1,
       savedOnly = props.setting.savedOnly,
       publicOnly = props.setting.publicOnly;
+    console.log(props.setting, savedOnly);
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
       if (params.has("page")) page = Number(params.get("page"));

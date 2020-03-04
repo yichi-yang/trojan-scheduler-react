@@ -36,7 +36,12 @@ class AccountPage extends React.Component {
     this.state = {
       profile: props.profile,
       loading: false,
-      sendEmailLoading: false
+      sendEmailLoading: false,
+      old_password: "",
+      password: "",
+      password2: "",
+      changePassword: false,
+      passwordUpdated: false
     };
     this.cancelSource = axios.CancelToken.source();
   }
@@ -46,6 +51,12 @@ class AccountPage extends React.Component {
       this.setState(state => ({
         profile: { ...state.profile, [name]: value }
       }));
+    }
+  };
+
+  handlePasswordChange = (e, { name, value }) => {
+    if (this.state[name] !== undefined) {
+      this.setState({ [name]: value });
     }
   };
 
@@ -71,10 +82,29 @@ class AccountPage extends React.Component {
   };
 
   saveUserProfile = () => {
-    let { id } = this.props.profile;
+    let {
+      profile,
+      changePassword,
+      password,
+      password2,
+      old_password
+    } = this.state;
+    if (changePassword) {
+      if (password !== password2) {
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Passwords Do Not Match`,
+          time: 30000
+        });
+        return;
+      } else {
+        profile = { ...profile, password, old_password };
+      }
+    }
     this.setState({ loading: true });
     axios
-      .patch(`/api/users/${id}/`, this.state.profile, {
+      .patch(`/api/users/${this.props.profile.id}/`, profile, {
         cancelToken: this.cancelSource.token
       })
       .then(response => {
@@ -86,7 +116,20 @@ class AccountPage extends React.Component {
           description: "Your settings are saved.",
           time: 10000
         });
-        this.setState({ loading: false, profile: response.data });
+        this.setState(
+          {
+            loading: false,
+            profile: response.data,
+            password: "",
+            password2: "",
+            old_password: "",
+            changePassword: false,
+            passwordUpdated: changePassword
+          },
+          () => {
+            if (changePassword) this.props.clearUserState();
+          }
+        );
       })
       .catch(error => {
         toast({
@@ -96,7 +139,12 @@ class AccountPage extends React.Component {
           list: errorFormatter(error).split("\n"),
           time: 10000
         });
-        this.setState({ loading: false });
+        this.setState({
+          loading: false,
+          password: "",
+          password2: "",
+          old_password: ""
+        });
       });
   };
 
@@ -158,13 +206,27 @@ class AccountPage extends React.Component {
       });
   };
 
+  toggleChangePassword = () => {
+    this.setState({
+      old_password: "",
+      password: "",
+      password2: "",
+      changePassword: !this.state.changePassword
+    });
+  };
+
   componentDidMount() {
     if (this.props.profile) this.getUserProfile();
   }
 
   componentDidUpdate(prevProps) {
-    if (Boolean(this.props.profile) !== Boolean(prevProps.profile)) {
+    let prevHasProfile = Boolean(prevProps.profile),
+      hasProfile = Boolean(this.props.profile);
+    if (prevHasProfile && !hasProfile) {
       this.setState({ profile: this.props.profile });
+    }
+    if (!prevHasProfile && hasProfile) {
+      this.setState({ profile: this.props.profile, passwordUpdated: false });
     }
   }
 
@@ -175,7 +237,13 @@ class AccountPage extends React.Component {
   }
 
   render() {
-    if (!this.state.profile) {
+    if (this.state.passwordUpdated) {
+      return (
+        <Message success>
+          Your password is updated. Please sign in with your new credentials.
+        </Message>
+      );
+    } else if (!this.state.profile) {
       return (
         <Message info>Please log in to change your account settings.</Message>
       );
@@ -194,6 +262,8 @@ class AccountPage extends React.Component {
       date_joined,
       show_date_joined
     } = this.state.profile;
+    let { password, password2, old_password } = this.state;
+
     let displayNameOptions = [{ key: "username", text: username, value: "US" }];
     let full_name = first_name + " " + last_name;
     if (first_name)
@@ -228,6 +298,44 @@ class AccountPage extends React.Component {
 
             <Form loading={this.state.loading}>
               <Form.Input fluid value={username} label="Username" readOnly />
+              <Form.Button
+                content="Change Password"
+                onClick={this.toggleChangePassword}
+              />
+              {this.state.changePassword && (
+                <>
+                  <Form.Input
+                    required
+                    fluid
+                    value={old_password}
+                    label="Old password"
+                    name="old_password"
+                    onChange={this.handlePasswordChange}
+                    type="password"
+                  />
+                  <Form.Input
+                    required
+                    fluid
+                    value={password}
+                    label="Password"
+                    name="password"
+                    onChange={this.handlePasswordChange}
+                    type="password"
+                  />
+                  <Form.Input
+                    required
+                    fluid
+                    value={password2}
+                    label="Confirm password"
+                    name="password2"
+                    onChange={this.handlePasswordChange}
+                    type="password"
+                    error={
+                      password !== password2 ? "Passwords do not match." : null
+                    }
+                  />
+                </>
+              )}
               <Form.Field>
                 <label>Email</label>
                 <Input
