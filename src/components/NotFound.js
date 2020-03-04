@@ -1,25 +1,19 @@
-import React, { useState } from "react";
-import { Header, Image, Dimmer, Segment } from "semantic-ui-react";
-import "./app/GroupSelect";
-
-const randomImage = "https://source.unsplash.com/user/erondu/1600x400";
+import React from "react";
+import { Header, Icon, Grid } from "semantic-ui-react";
 
 const NotFound = () => {
-  let [dimmed, setDimmed] = useState(true);
   return (
-    <Dimmer.Dimmable
-      as={Segment}
-      dimmed={dimmed}
-      blurring
-      style={{ padding: 0 }}
-    >
-      <Image src={randomImage} rounded />
-      <Dimmer active onClick={() => setDimmed(!dimmed)}>
-        <Header inverted size="huge">
-          404 Not Found
+    <Grid>
+      <Grid.Column textAlign="center" style={{ paddingTop: "20vh" }}>
+        <Header icon size="huge">
+          <Icon name="meh" loading />
+          404
+          <Header.Subheader>
+            Not sure what you are looking for...
+          </Header.Subheader>
         </Header>
-      </Dimmer>
-    </Dimmer.Dimmable>
+      </Grid.Column>
+    </Grid>
   );
 };
 

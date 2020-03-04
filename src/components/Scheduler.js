@@ -5,19 +5,16 @@ import {
   Dropdown,
   List,
   Segment,
+  Responsive
 } from "semantic-ui-react";
-import { Route, useParams, Switch, NavLink } from "react-router-dom";
-import SchedulePage from "./schedule/SchedulePage";
-import TaskPage from "./schedule/TaskPage";
-import NotFound from "./NotFound";
-import AppPage from "./app/AppPage";
+import { Route, Switch, NavLink } from "react-router-dom";
+import LandingPage from "./LandingPage";
 import LoginButton from "./account/LoginButton";
 import SignupButton from "./account/SignupButton";
-import TaskListPage from "./schedule/TaskListPage";
-import ScheduleListPage from "./schedule/ScheduleListPage";
+
 import { SemanticToastContainer } from "react-semantic-toasts";
 import "react-semantic-toasts/styles/react-semantic-alert.css";
-import AccountPage from "./account/AccountPage";
+import OtherPages from "./OtherPages";
 
 class Scheduler extends React.Component {
   constructor(props) {
@@ -34,44 +31,52 @@ class Scheduler extends React.Component {
       <>
         <Menu fixed="top" inverted>
           <Container>
-            <Menu.Item as="a" header>
-              {/* <Image
+            <Responsive as={React.Fragment} minWidth={700}>
+              <Menu.Item as="a" header>
+                {/* <Image
                 size="mini"
                 src="/logo.png"
                 style={{ marginRight: "1.5em" }}
               /> */}
-              Project Name
-            </Menu.Item>
-            <Menu.Item as={NavLink} to="/" exact>
-              Home
-            </Menu.Item>
-            <Menu.Item as={NavLink} to="/app/">
-              App
-            </Menu.Item>
-            <Menu.Item as={NavLink} to="/task/">
-              Tasks
-            </Menu.Item>
-            <Menu.Item as={NavLink} to="/schedule/">
-              Schedules
-            </Menu.Item>
+                Trojan Scheduler
+              </Menu.Item>
+              <Menu.Item as={NavLink} to="/" exact>
+                Home
+              </Menu.Item>
+              <Menu.Item as={NavLink} to="/app/">
+                App
+              </Menu.Item>
+              <Menu.Item as={NavLink} to="/task/">
+                Tasks
+              </Menu.Item>
+              <Menu.Item as={NavLink} to="/schedule/">
+                Schedules
+              </Menu.Item>
+            </Responsive>
 
-            <Dropdown item simple text="Dropdown">
+            <Responsive
+              as={Dropdown}
+              maxWidth={699}
+              item
+              simple
+              icon="content"
+              className="menu-more"
+            >
               <Dropdown.Menu>
-                <Dropdown.Item>List Item</Dropdown.Item>
-                <Dropdown.Item>List Item</Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Header>Header Item</Dropdown.Header>
-                <Dropdown.Item>
-                  <i className="dropdown icon" />
-                  <span className="text">Submenu</span>
-                  <Dropdown.Menu>
-                    <Dropdown.Item>List Item</Dropdown.Item>
-                    <Dropdown.Item>List Item</Dropdown.Item>
-                  </Dropdown.Menu>
+                <Dropdown.Item as={NavLink} to="/" exact>
+                  Home
                 </Dropdown.Item>
-                <Dropdown.Item>List Item</Dropdown.Item>
+                <Dropdown.Item as={NavLink} to="/app/" exact>
+                  App
+                </Dropdown.Item>{" "}
+                <Dropdown.Item as={NavLink} to="/task/" exact>
+                  Tasks
+                </Dropdown.Item>{" "}
+                <Dropdown.Item as={NavLink} to="/schedule/" exact>
+                  Schedules
+                </Dropdown.Item>
               </Dropdown.Menu>
-            </Dropdown>
+            </Responsive>
 
             <Menu.Menu position="right">
               <Menu.Item>
@@ -82,51 +87,20 @@ class Scheduler extends React.Component {
           </Container>
         </Menu>
 
-        <Container className="main-content">
-          <Switch>
-            <Route path="/app" component={AppPage} />
-            <Route
-              path="/task/:id"
-              exact
-              component={props => {
-                let { id } = useParams();
-                return <TaskPage task_id={id} {...props} />;
-              }}
-            />
-            <Route
-              path="/schedule/:id"
-              exact
-              component={props => {
-                let { id } = useParams();
-                return <SchedulePage schedule_id={id} {...props} />;
-              }}
-            />
-            <Route path="/task/" exact component={TaskListPage} />
-            <Route path="/schedule/" exact component={ScheduleListPage} />
-            <Route path="/account/" exact component={AccountPage} />
-            <Route component={NotFound} />
-          </Switch>
-        </Container>
+        <Switch>
+          <Route path="/" exact component={LandingPage} />=
+          <Route component={OtherPages} />
+        </Switch>
 
-        <Segment
-          inverted
-          vertical
-          className="footer"
-        >
+        <Segment inverted vertical className="footer">
           <Container textAlign="center">
             {/* <Image centered size="mini" src="/logo.png" /> */}
             <List horizontal inverted divided link size="small">
               <List.Item as="a" href="#">
-                Site Map
+                Home
               </List.Item>
               <List.Item as="a" href="#">
-                Contact Us
-              </List.Item>
-              <List.Item as="a" href="#">
-                Terms and Conditions
-              </List.Item>
-              <List.Item as="a" href="#">
-                Privacy Policy
+                About
               </List.Item>
             </List>
           </Container>

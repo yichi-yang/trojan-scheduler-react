@@ -6,13 +6,16 @@ import {
   Item,
   Pagination,
   Label,
-  Header
+  Header,
+  Responsive
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { error2message } from "../../util";
+import { errorFormatterCreator, statusCodeFormatter } from "../../util";
+
+const errorFormatter = errorFormatterCreator(statusCodeFormatter);
 
 class TaskListPage extends React.Component {
   constructor(props) {
@@ -23,17 +26,20 @@ class TaskListPage extends React.Component {
       page = params.get("page");
     }
     this.state = { task_list: null, error: null, loading: false, page };
+    this.cancelSource = axios.CancelToken.source();
   }
 
   loadTaskData = () => {
     console.log("load task list");
     axios
-      .get(`/api/tasks/?page=${this.state.page}`)
+      .get(`/api/tasks/?page=${this.state.page}`, {
+        cancelToken: this.cancelSource.token
+      })
       .then(response => {
         this.setState({ task_list: response.data, loading: false });
       })
       .catch(error => {
-        this.setState({ error: error2message(error), loading: false });
+        this.setState({ error: errorFormatter(error), loading: false });
       });
   };
 
@@ -92,6 +98,12 @@ class TaskListPage extends React.Component {
       this.props.location.pathname + "?" + query.toString()
     );
   };
+  
+  componentWillUnmount() {
+    this.cancelSource.cancel(
+      "axios requests cancelled on task list page unmount"
+    );
+  }
 
   render() {
     let { task_list, error, loading } = this.state;
@@ -136,11 +148,30 @@ class TaskListPage extends React.Component {
           </Item.Group>
         );
         pagination = (
-          <Pagination
-            activePage={this.state.page}
-            onPageChange={this.handlePaginationChange}
-            totalPages={task_list.total_pages}
-          />
+          <>
+            <Responsive
+              as={Pagination}
+              minWidth={500}
+              nextItem={null}
+              prevItem={null}
+              siblingRange={2}
+              activePage={this.state.page}
+              onPageChange={this.handlePaginationChange}
+              totalPages={task_list.total_pages}
+            />
+            <Responsive
+              as={Pagination}
+              maxWidth={499}
+              boundaryRange={0}
+              ellipsisItem={null}
+              nextItem={null}
+              prevItem={null}
+              siblingRange={2}
+              activePage={this.state.page}
+              onPageChange={this.handlePaginationChange}
+              totalPages={task_list.total_pages}
+            />
+          </>
         );
       }
     }

@@ -35,7 +35,8 @@ class AccountPage extends React.Component {
     super(props);
     this.state = {
       profile: props.profile,
-      loading: false
+      loading: false,
+      sendEmailLoading: false
     };
     this.cancelSource = axios.CancelToken.source();
   }
@@ -99,6 +100,38 @@ class AccountPage extends React.Component {
       });
   };
 
+  sendEmailVerification = () => {
+    this.setState({ sendEmailLoading: true });
+    axios
+      .post(
+        `/api/verify-email/request-token/`,
+        {},
+        {
+          cancelToken: this.cancelSource.token
+        }
+      )
+      .then(() => {
+        toast({
+          type: "success",
+          icon: "send",
+          title: "Email Verification Link Sent",
+          description: "Check your inbox for the verification email.",
+          time: 30000
+        });
+        this.setState({ sendEmailLoading: false });
+      })
+      .catch(error => {
+        toast({
+          type: "error",
+          icon: "times",
+          title: `Failed to Send Email`,
+          list: errorFormatter(error).split("\n"),
+          time: 10000
+        });
+        this.setState({ sendEmailLoading: false });
+      });
+  };
+
   signOutFromAllDevices = () => {
     this.setState({ loading: true });
     axios
@@ -126,7 +159,7 @@ class AccountPage extends React.Component {
   };
 
   componentDidMount() {
-    this.getUserProfile();
+    if (this.props.profile) this.getUserProfile();
   }
 
   componentDidUpdate(prevProps) {
@@ -322,7 +355,10 @@ class AccountPage extends React.Component {
                 <Form.Button
                   fluid
                   color="blue"
-                  content="Verify Email (does not work yet)"
+                  content="Verify Email"
+                  loading={this.state.sendEmailLoading}
+                  disabled={this.state.sendEmailLoading}
+                  onClick={this.sendEmailVerification}
                 />
               )}
               <Form.Button

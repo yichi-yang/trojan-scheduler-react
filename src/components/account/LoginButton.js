@@ -130,10 +130,20 @@ class LoginButton extends React.Component {
     this.setState({ userProfile: {} });
   };
 
+  delayLoadProfile = props => {
+    if (props.location && props.location.search) {
+      let params = new URLSearchParams(this.props.location.search);
+      return params.has("no-update");
+    }
+    return false;
+  };
+
   componentDidMount() {
-    let { tokens } = this.props;
-    if (tokens) {
-      this.getUserProfile(tokens);
+    if (!this.delayLoadProfile(this.props)) {
+      let { tokens } = this.props;
+      if (tokens) {
+        this.getUserProfile(tokens);
+      }
     }
   }
 

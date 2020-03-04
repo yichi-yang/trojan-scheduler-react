@@ -146,3 +146,12 @@ ul.share-buttons .sr-only {
     padding: 1em;
   }
 }
+
+.ui.inverted.segment.landing-page-segment {
+  background: linear-gradient(
+    0deg,
+    rgba(27, 28, 29, 1) 0%,
+    rgba(35, 36, 37, 1) 45%,
+    rgba(27, 28, 29, 1) 89%
+  );
+}

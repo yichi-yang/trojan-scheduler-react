@@ -16,8 +16,10 @@ import { connect } from "react-redux";
 import { editSetting } from "../../actions";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { error2message } from "../../util";
 import ScheduleStatus from "./ScheduleStatus";
+import { errorFormatterCreator, statusCodeFormatter } from "../../util";
+
+const errorFormatter = errorFormatterCreator(statusCodeFormatter);
 
 const str2bool = str => ["", "True", "TRUE", "true"].includes(str);
 
@@ -41,6 +43,7 @@ class ScheduleListPage extends React.Component {
       savedOnly,
       publicOnly
     };
+    this.cancelSource = axios.CancelToken.source();
   }
 
   loadScheduleData = () => {
@@ -50,12 +53,14 @@ class ScheduleListPage extends React.Component {
     if (savedOnly) query.set("saved", savedOnly);
     if (publicOnly) query.set("public", publicOnly);
     axios
-      .get(`/api/schedules/?${query.toString()}`)
+      .get(`/api/schedules/?${query.toString()}`, {
+        cancelToken: this.cancelSource.token
+      })
       .then(response => {
         this.setState({ schedule_list: response.data, loading: false });
       })
       .catch(error =>
-        this.setState({ error: error2message(error), loading: false })
+        this.setState({ error: errorFormatter(error), loading: false })
       );
   };
 
@@ -150,6 +155,12 @@ class ScheduleListPage extends React.Component {
     return null;
   };
 
+  componentWillUnmount() {
+    this.cancelSource.cancel(
+      "axios requests cancelled on schedule list page unmount"
+    );
+  }
+
   render() {
     let { schedule_list, error, loading } = this.state;
     let message = null;
@@ -187,11 +198,30 @@ class ScheduleListPage extends React.Component {
           </Item.Group>
         );
         pagination = (
-          <Pagination
-            activePage={this.state.page}
-            onPageChange={this.handlePaginationChange}
-            totalPages={schedule_list.total_pages}
-          />
+          <>
+            <Responsive
+              as={Pagination}
+              minWidth={500}
+              nextItem={null}
+              prevItem={null}
+              siblingRange={2}
+              activePage={this.state.page}
+              onPageChange={this.handlePaginationChange}
+              totalPages={schedule_list.total_pages}
+            />
+            <Responsive
+              as={Pagination}
+              maxWidth={499}
+              boundaryRange={0}
+              ellipsisItem={null}
+              nextItem={null}
+              prevItem={null}
+              siblingRange={2}
+              activePage={this.state.page}
+              onPageChange={this.handlePaginationChange}
+              totalPages={schedule_list.total_pages}
+            />
+          </>
         );
       }
     }

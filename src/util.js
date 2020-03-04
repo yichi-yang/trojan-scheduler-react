@@ -101,51 +101,34 @@ export const getTaskName = (task, altId) => {
   return "Task ?";
 };
 
-export const error2message = (
-  error,
-  noPermissionMessage = null,
-  useResponse = false
-) => {
-  if (
-    useResponse &&
-    error.response &&
-    error.response.data &&
-    error.response.status &&
-    (error.response.status < 500 || error.response.status >= 600)
-  ) {
-    return Object.entries(error.response.data)
-      .map(
-        ([key, value]) =>
-          (key === "detail" ? "" : key + ": ") +
-          (Array.isArray(value) ? value.join() : value)
-      )
-      .join("\n");
-  }
-  if (
-    noPermissionMessage &&
-    error.response &&
-    error.response.status &&
-    [401, 403].includes(error.response.status)
-  ) {
-    return noPermissionMessage;
-  }
-  if (
-    noPermissionMessage &&
-    error.response &&
-    error.response.status &&
-    error.response.statusText
-  ) {
-    return error.response.status + " " + error.response.statusText;
-  }
-  return String(error);
-};
-
 export const errorFormatterCreator = (...formatters) => error => {
   let message = null;
   for (let formatter of formatters) {
     if ((message = formatter(error))) return message;
   }
   return String(error);
+};
+
+export const matchStatusCode = (formatter, statusList) => error => {
+  if (
+    error.response &&
+    error.response.status &&
+    statusList.includes(error.response.status)
+  ) {
+    return formatter(error);
+  }
+  return null;
+};
+
+export const excludeStatusCode = (formatter, statusList) => error => {
+  if (
+    error.response &&
+    error.response.status &&
+    !statusList.includes(error.response.status)
+  ) {
+    return formatter(error);
+  }
+  return null;
 };
 
 export const customMessageFormatter = (message, status) => error => {
