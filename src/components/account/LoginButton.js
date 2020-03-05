@@ -38,6 +38,11 @@ const errorFormatter = errorFormatterCreator(
   statusCodeFormatter
 );
 
+const loginErrorFormatter = errorFormatterCreator(
+  responseDataFormatter,
+  statusCodeFormatter
+);
+
 class LoginButton extends React.Component {
   constructor(props) {
     super(props);
@@ -88,7 +93,7 @@ class LoginButton extends React.Component {
       })
       .catch(error => {
         this.setState({
-          loginError: errorFormatter(error),
+          loginError: loginErrorFormatter(error),
           modalOpen: true,
           loadingLogin: false
         });
