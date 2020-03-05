@@ -25,3 +25,6 @@ export const scheduleSectionLifetime = moment.duration(10, "m");
 export const scheduleExpireAfter = 30;
 
 export const siteName = "Trojan Scheduler";
+
+export const defaultTimeout = 5000 // ms
+export const fetchCourseTimeout = 15000 // ms

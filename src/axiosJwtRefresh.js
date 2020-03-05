@@ -2,6 +2,7 @@ import axios from "axios";
 import createAuthRefreshInterceptor from "axios-auth-refresh";
 import { setUserTokens, clearUserState } from "./actions";
 import jwtDecode from "jwt-decode";
+import { defaultTimeout } from "./settings";
 
 const statusCodes = [401];
 
@@ -14,7 +15,7 @@ const refreshAuthLogicCreator = store => failedRequest => {
     .post(
       "/api/token/refresh/",
       { refresh },
-      { skipAuthRefresh: true, NoJWT: true }
+      { skipAuthRefresh: true, NoJWT: true, timeout: defaultTimeout }
     )
     .then(tokenRefreshResponse => {
       console.log("refresh token success");
@@ -78,7 +79,7 @@ const errorFilter = error => {
             .post(
               "/api/token/verify/",
               { token },
-              { skipAuthRefresh: true, NoJWT: true }
+              { skipAuthRefresh: true, NoJWT: true, timeout: defaultTimeout }
             )
             .then(() => {
               error.config.skipAuthRefresh = true;
@@ -94,6 +95,7 @@ const errorFilter = error => {
 };
 
 const setupJwtRefresh = store => {
+  axios.defaults.timeout = defaultTimeout;
   axios.interceptors.response.use(success => success, errorFilter);
   axios.interceptors.request.use(requestInterceptorCreator(store));
   createAuthRefreshInterceptor(axios, refreshAuthLogicCreator(store), {

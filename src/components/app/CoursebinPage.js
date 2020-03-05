@@ -30,7 +30,7 @@ import {
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import moment from "moment";
-import { coursebinCourseLifetime } from "../../settings";
+import { coursebinCourseLifetime, fetchCourseTimeout } from "../../settings";
 import AddCourseForm from "./AddCourseForm";
 import ToolForm from "./ToolForm";
 import { Helmet } from "react-helmet";
@@ -85,7 +85,7 @@ class CoursebinPage extends React.Component {
       .put(
         `/api/courses/${term}/${course}/`,
         {},
-        { cancelToken: this.cancelSource.token }
+        { cancelToken: this.cancelSource.token, timeout: fetchCourseTimeout }
       )
       .then(response => {
         this.removeLoading(course);
