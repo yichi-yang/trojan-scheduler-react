@@ -16,12 +16,14 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  customMessageFormatter
+  matchStatusCode,
+  formatTitle
 } from "../../util";
 import { toast } from "react-semantic-toasts";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
-  customMessageFormatter("Your session has expired. Log in to continue.", [
+  matchStatusCode("Your session has expired. Please log in to continue.", [
     401
   ]),
   responseDataFormatter,
@@ -228,6 +230,9 @@ class ResultsWidget extends React.Component {
     }
     return (
       <Container>
+        <Helmet>
+          <title>{formatTitle("Results")}</title>
+        </Helmet>
         <Segment.Group>
           <Segment>
             {coursebinSummary}

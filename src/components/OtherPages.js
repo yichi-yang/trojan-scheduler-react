@@ -10,7 +10,7 @@ import ScheduleListPage from "./schedule/ScheduleListPage";
 import EmailVerificationPage from "./account/EmailVerificationPage";
 import PasswordResetPage from "./account/PasswordResetPage";
 import PasswordForgetPage from "./account/PasswordForgetPage";
-import { Route, useParams, Switch } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 
 class OtherPages extends React.Component {
   render() {
@@ -21,18 +21,19 @@ class OtherPages extends React.Component {
           <Route
             path="/task/:id"
             exact
-            component={props => {
-              let { id } = useParams();
-              return <TaskPage task_id={id} {...props} />;
-            }}
+            render={routeProps => (
+              <TaskPage task_id={routeProps.match.params.id} {...routeProps} />
+            )}
           />
           <Route
             path="/schedule/:id"
             exact
-            component={props => {
-              let { id } = useParams();
-              return <SchedulePage schedule_id={id} {...props} />;
-            }}
+            render={routeProps => (
+              <SchedulePage
+                schedule_id={routeProps.match.params.id}
+                {...routeProps}
+              />
+            )}
           />
           <Route path="/task/" exact component={TaskListPage} />
           <Route path="/schedule/" exact component={ScheduleListPage} />

@@ -17,15 +17,21 @@ import axios from "axios";
 import {
   errorFormatterCreator,
   responseDataFormatter,
-  statusCodeFormatter
+  statusCodeFormatter,
+  matchStatusCode,
+  formatTitle
 } from "../../util";
 import { setUserProfile, clearUserState } from "../../actions";
 import AvatarSelect from "./AvatarSelect";
 import { toast } from "react-semantic-toasts";
 import ProfileCard from "./ProfileCard";
 import moment from "moment";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
+  matchStatusCode("Your session has expired. Please log in to continue.", [
+    401
+  ]),
   responseDataFormatter,
   statusCodeFormatter
 );
@@ -292,6 +298,9 @@ class AccountPage extends React.Component {
       displayNameOptions.push({ key: "nickname", text: nickname, value: "NC" });
     return (
       <Segment className="dynamic" padded="very">
+        <Helmet>
+          <title>{formatTitle("Account")}</title>
+        </Helmet>
         <Grid stackable>
           <Grid.Column width="6">
             <Header>My Profile</Header>

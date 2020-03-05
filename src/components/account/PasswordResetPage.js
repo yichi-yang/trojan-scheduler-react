@@ -5,8 +5,10 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  matchStatusCode
+  matchStatusCode,
+  formatTitle
 } from "../../util";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
   matchStatusCode(() => 401, [401]),
@@ -83,11 +85,14 @@ class PasswordResetPage extends React.Component {
         loading={loading}
         style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
       >
+        <Helmet>
+          <title>{formatTitle("Password Reset")}</title>
+        </Helmet>
         <Header size="large" as="h1" textAlign="center">
           Password Reset
         </Header>
         {success && (
-          <Header icon  textAlign="center">
+          <Header icon textAlign="center">
             <Icon name="check" />
             Password Updated
             <Header.Subheader>Log in to continue.</Header.Subheader>
@@ -95,7 +100,7 @@ class PasswordResetPage extends React.Component {
         )}
         {!invalid_token && error && <Message error>{error}</Message>}
         {invalid_token && (
-          <Header icon  textAlign="center">
+          <Header icon textAlign="center">
             <Icon name="times" />
             Invalid Token
             <Header.Subheader>

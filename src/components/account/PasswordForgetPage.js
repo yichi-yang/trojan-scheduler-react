@@ -4,8 +4,10 @@ import axios from "axios";
 import {
   errorFormatterCreator,
   responseDataFormatter,
-  statusCodeFormatter
+  statusCodeFormatter,
+  formatTitle
 } from "../../util";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
   responseDataFormatter,
@@ -61,6 +63,9 @@ class PasswordForgetPage extends React.Component {
         loading={loading}
         style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
       >
+        <Helmet>
+          <title>{formatTitle("Forget Password")}</title>
+        </Helmet>
         <Header size="large" as="h1" textAlign="center">
           Forget Password
           <Header.Subheader>

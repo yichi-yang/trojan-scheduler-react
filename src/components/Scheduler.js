@@ -7,7 +7,7 @@ import {
   Segment,
   Responsive
 } from "semantic-ui-react";
-import { Route, Switch, NavLink } from "react-router-dom";
+import { Route, Switch, NavLink, Link } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import LoginButton from "./account/LoginButton";
 import SignupButton from "./account/SignupButton";
@@ -96,11 +96,14 @@ class Scheduler extends React.Component {
           <Container textAlign="center">
             {/* <Image centered size="mini" src="/logo.png" /> */}
             <List horizontal inverted divided link size="small">
-              <List.Item as="a" href="#">
+              <List.Item as={Link} to="#">
                 Home
               </List.Item>
-              <List.Item as="a" href="#">
+              <List.Item as={Link} to="#">
                 About
+              </List.Item>
+              <List.Item as={Link} to="#">
+                Contact
               </List.Item>
             </List>
           </Container>

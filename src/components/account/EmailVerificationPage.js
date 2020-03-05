@@ -5,8 +5,10 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  matchStatusCode
+  matchStatusCode,
+  formatTitle
 } from "../../util";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
   matchStatusCode(() => 401, [401]),
@@ -74,8 +76,10 @@ class EmailVerificationPage extends React.Component {
         padded="very"
         loading={loading}
         style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
-        
       >
+        <Helmet>
+          <title>{formatTitle("Verify Email")}</title>
+        </Helmet>
         <Header size="large" as="h1" textAlign="center">
           Verify Your Email
         </Header>

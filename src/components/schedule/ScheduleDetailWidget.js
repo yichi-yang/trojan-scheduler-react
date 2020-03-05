@@ -19,13 +19,17 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  getScheduleName
+  getScheduleName,
+  matchStatusCode
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import { scheduleExpireAfter } from "../../settings";
 import ProfileCard from "../account/ProfileCard";
 
 const errorFormatter = errorFormatterCreator(
+  matchStatusCode("Your session has expired. Please log in to continue.", [
+    401
+  ]),
   responseDataFormatter,
   statusCodeFormatter
 );

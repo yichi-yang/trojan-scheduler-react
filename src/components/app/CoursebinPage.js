@@ -24,13 +24,16 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
-  customMessageFormatter
+  matchStatusCode,
+  excludeStatusCode,
+  formatTitle
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import moment from "moment";
 import { coursebinCourseLifetime } from "../../settings";
 import AddCourseForm from "./AddCourseForm";
 import ToolForm from "./ToolForm";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
   error => {
@@ -43,15 +46,10 @@ const errorFormatter = errorFormatterCreator(
     }
     return null;
   },
-  customMessageFormatter("Your session has expired. Log in to continue.", [
+  matchStatusCode("Your session has expired. Please log in to continue.", [
     401
   ]),
-  error => {
-    if (error.response && error.response.status !== 404) {
-      return responseDataFormatter(error);
-    }
-    return null;
-  },
+  excludeStatusCode(responseDataFormatter, [404]),
   statusCodeFormatter
 );
 
@@ -261,6 +259,9 @@ class CoursebinPage extends React.Component {
 
     return (
       <Container>
+        <Helmet>
+          <title>{formatTitle("Coursebin")}</title>
+        </Helmet>
         <Segment.Group>
           <Segment>
             <Header>Add Course</Header>

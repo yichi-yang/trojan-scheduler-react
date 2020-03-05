@@ -16,6 +16,8 @@ import {
   removeReservedSlot
 } from "../../actions";
 import shortid from "shortid";
+import { Helmet } from "react-helmet";
+import { formatTitle } from "../../util";
 
 class PreferencesWidget extends React.Component {
   constructor(props) {
@@ -84,6 +86,9 @@ class PreferencesWidget extends React.Component {
     let valid_slot = this.state.reserved_from <= this.state.reserved_to;
     return (
       <Container>
+        <Helmet>
+          <title>{formatTitle("Preferences")}</title>
+        </Helmet>
         <Segment.Group>
           <Segment>
             <Header>Early Class</Header>

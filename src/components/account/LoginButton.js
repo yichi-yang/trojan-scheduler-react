@@ -23,12 +23,17 @@ import {
   errorFormatterCreator,
   responseDataFormatter,
   statusCodeFormatter,
+  matchStatusCode,
   str2para
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import { withRouter } from "react-router-dom";
 
 const errorFormatter = errorFormatterCreator(
+  matchStatusCode(
+    () => "Your session has expired. Please log in to continue.",
+    [401]
+  ),
   responseDataFormatter,
   statusCodeFormatter
 );

@@ -14,7 +14,12 @@ import moment from "moment";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { errorFormatterCreator, statusCodeFormatter } from "../../util";
+import {
+  errorFormatterCreator,
+  statusCodeFormatter,
+  formatTitle
+} from "../../util";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(statusCodeFormatter);
 
@@ -201,6 +206,9 @@ class TaskListPage extends React.Component {
 
     return (
       <>
+        <Helmet>
+          <title>{formatTitle("Tasks")}</title>
+        </Helmet>
         <Segment.Group>
           <Segment padded className="dynamic">
             <Header as="h1">Tasks</Header>

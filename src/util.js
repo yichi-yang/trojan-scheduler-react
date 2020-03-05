@@ -1,4 +1,5 @@
 import React from "react";
+import { siteName } from "./settings";
 
 const createCourse = courseData => ({
   type: "course",
@@ -115,7 +116,8 @@ export const matchStatusCode = (formatter, statusList) => error => {
     error.response.status &&
     statusList.includes(error.response.status)
   ) {
-    return formatter(error);
+    if (typeof formatter === "function") return formatter(error);
+    return String(formatter);
   }
   return null;
 };
@@ -126,24 +128,14 @@ export const excludeStatusCode = (formatter, statusList) => error => {
     error.response.status &&
     !statusList.includes(error.response.status)
   ) {
-    return formatter(error);
-  }
-  return null;
-};
-
-export const customMessageFormatter = (message, status) => error => {
-  if (
-    error.response &&
-    error.response.status &&
-    (error.response.status === status || status.includes(error.response.status))
-  ) {
-    return message;
+    if (typeof formatter === "function") return formatter(error);
+    return String(formatter);
   }
   return null;
 };
 
 export const noPermissionFormatter = (message, status = [401, 403]) =>
-  customMessageFormatter(message, status);
+  matchStatusCode(message, status);
 
 export const statusCodeFormatter = error => {
   if (error.response && error.response.status && error.response.statusText) {
@@ -192,3 +184,5 @@ export const responseDataFormatter = error => {
 
 export const str2para = str =>
   str.split("\n").map((line, index) => <p key={index}>{line}</p>);
+
+export const formatTitle = title => title + " | " + siteName;

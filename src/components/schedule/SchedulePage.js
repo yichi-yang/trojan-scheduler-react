@@ -11,8 +11,10 @@ import {
   statusCodeFormatter,
   noPermissionFormatter,
   str2para,
-  getScheduleName
+  getScheduleName,
+  formatTitle
 } from "../../util";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
   noPermissionFormatter(
@@ -93,7 +95,7 @@ class SchedulePage extends React.Component {
 
   render() {
     let { scheduleData, error, scheduleUser } = this.state;
-    let schedule_name = getScheduleName(scheduleData, this.props.schedule_id);
+    let scheduleName = getScheduleName(scheduleData, this.props.schedule_id);
     let message = error ? <Message error>{str2para(error)}</Message> : null;
     let content = null;
     let detail = null;
@@ -151,12 +153,17 @@ class SchedulePage extends React.Component {
     }
 
     return (
-      <Segment>
-        <Header>{schedule_name}</Header>
-        {detail}
-        {message}
-        {content}
-      </Segment>
+      <>
+        <Helmet>
+          <title>{formatTitle(scheduleName)}</title>
+        </Helmet>
+        <Segment>
+          <Header>{scheduleName}</Header>
+          {detail}
+          {message}
+          {content}
+        </Segment>
+      </>
     );
   }
 }

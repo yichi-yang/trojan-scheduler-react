@@ -8,10 +8,15 @@ import {
   Button,
   Responsive
 } from "semantic-ui-react";
+import { Helmet } from "react-helmet";
+import { formatTitle } from "../util";
 
 const LandingPage = () => {
   return (
     <>
+      <Helmet>
+        <title>{formatTitle("Home")}</title>
+      </Helmet>
       <Segment
         vertical
         inverted
@@ -34,9 +39,6 @@ const LandingPage = () => {
         <Button content="Open Scheduler" size="huge" basic inverted />
       </Segment>
       <Container style={{ padding: "3em", paddingBottom: "9em" }}>
-        {/* <Header as="h3" size="huge">
-          More Topics
-        </Header> */}
         <Card.Group itemsPerRow="3" stackable>
           <Card href="#">
             <Image

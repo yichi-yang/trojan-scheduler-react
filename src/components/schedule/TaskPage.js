@@ -18,11 +18,13 @@ import {
   noPermissionFormatter,
   str2para,
   getTaskName,
-  getScheduleName
+  getScheduleName,
+  formatTitle
 } from "../../util";
 import TaskDetailWidget from "./TaskDetailWidget";
 import moment from "moment";
 import ScheduleStatus from "./ScheduleStatus";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(
   noPermissionFormatter(
@@ -129,7 +131,7 @@ class TaskPage extends React.Component {
 
   render() {
     let { taskData, taskUser, error, selected } = this.state;
-    let task_name = getTaskName(taskData, this.props.task_id);
+    let taskName = getTaskName(taskData, this.props.task_id);
     let message = null;
     if (error) {
       message = <Message error>{str2para(error)}</Message>;
@@ -232,12 +234,17 @@ class TaskPage extends React.Component {
     }
 
     return (
-      <Segment>
-        <Header>{task_name}</Header>
-        {details}
-        {message}
-        {content}
-      </Segment>
+      <>
+        <Helmet>
+          <title>{formatTitle(taskName)}</title>
+        </Helmet>
+        <Segment>
+          <Header>{taskName}</Header>
+          {details}
+          {message}
+          {content}
+        </Segment>
+      </>
     );
   }
 }

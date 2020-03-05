@@ -17,7 +17,12 @@ import { editSetting } from "../../actions";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import ScheduleStatus from "./ScheduleStatus";
-import { errorFormatterCreator, statusCodeFormatter } from "../../util";
+import {
+  errorFormatterCreator,
+  statusCodeFormatter,
+  formatTitle
+} from "../../util";
+import { Helmet } from "react-helmet";
 
 const errorFormatter = errorFormatterCreator(statusCodeFormatter);
 
@@ -253,6 +258,9 @@ class ScheduleListPage extends React.Component {
 
     return (
       <>
+        <Helmet>
+          <title>{formatTitle("Schedules")}</title>
+        </Helmet>
         <Segment.Group>
           <Segment padded className="dynamic">
             <Header as="h1" style={{ display: "inline-block" }}>
