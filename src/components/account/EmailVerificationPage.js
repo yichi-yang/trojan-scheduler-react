@@ -23,10 +23,11 @@ class EmailVerificationPage extends React.Component {
     let success = false;
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
-      if (params.has("token")) token = params.get("token");
       if (params.has("success")) success = true;
     }
-    if (token) props.history.replace(".");
+    if (this.props.location && this.props.location.state) {
+      token = this.props.location.state.token;
+    }
     this.state = {
       token,
       loading: false,

@@ -38,7 +38,7 @@ class OtherPages extends React.Component {
           <Route path="/task/" exact component={TaskListPage} />
           <Route path="/schedule/" exact component={ScheduleListPage} />
           <Route path="/account/" exact component={AccountPage} />
-          <Route path="/verify/" exact component={EmailVerificationPage} />
+          <Route path="/email/verify/" exact component={EmailVerificationPage} />
           <Route path="/password/reset/" exact component={PasswordResetPage} />
           <Route
             path="/password/forget/"

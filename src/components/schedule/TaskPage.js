@@ -75,20 +75,7 @@ class TaskPage extends React.Component {
         })
         .then(response => {
           this.setState({ taskData: response.data });
-          if (response.data.user) {
-            axios
-              .get(`/api/users/${response.data.user}/`, {
-                cancelToken: this.cancelSource.token
-              })
-              .then(response => this.setState({ taskUser: response.data }));
-          } else {
-            this.setState({
-              taskUser: {
-                avatar: "https://avatars.dicebear.com/v2/bottts/Empty.svg",
-                display_name: "Anonymous"
-              }
-            });
-          }
+          this.loadProfileData(response.data.user);
         })
         .catch(error => {
           this.setState({ error: errorFormatter(error) });
@@ -96,9 +83,28 @@ class TaskPage extends React.Component {
     }
   };
 
+  loadProfileData = user => {
+    if (user) {
+      axios
+        .get(`/api/users/${user}/`, {
+          cancelToken: this.cancelSource.token
+        })
+        .then(response => this.setState({ taskUser: response.data }));
+    } else {
+      this.setState({
+        taskUser: {
+          avatar: "https://avatars.dicebear.com/v2/bottts/Empty.svg",
+          display_name: "Anonymous"
+        }
+      });
+    }
+  };
+
   componentDidMount() {
     if (!this.state.taskData) {
       this.loadTaskData();
+    } else {
+      this.loadProfileData(this.state.taskData.user);
     }
   }
 
