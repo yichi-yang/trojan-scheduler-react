@@ -42,6 +42,9 @@ const PageContent = () => (
           <Menu.Item as={NavLink} to="/schedule/">
             Schedules
           </Menu.Item>
+          <Menu.Item as={NavLink} to="/about/">
+            About
+          </Menu.Item>
         </Responsive>
 
         <Responsive
@@ -65,6 +68,9 @@ const PageContent = () => (
             <Dropdown.Item as={NavLink} to="/schedule/" exact>
               Schedules
             </Dropdown.Item>
+            <Dropdown.Item as={NavLink} to="/about/" exact>
+              About
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Responsive>
 
@@ -86,13 +92,13 @@ const PageContent = () => (
       <Container textAlign="center">
         {/* <Image centered size="mini" src="/logo.png" /> */}
         <List horizontal inverted divided link size="small">
-          <List.Item as={Link} to="#">
+          <List.Item as={Link} to="/">
             Home
           </List.Item>
-          <List.Item as={Link} to="#">
+          <List.Item as={Link} to="/about/">
             About
           </List.Item>
-          <List.Item as={Link} to="#">
+          <List.Item as={Link} to="/about/#contact">
             Contact
           </List.Item>
         </List>

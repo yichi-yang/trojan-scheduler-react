@@ -249,13 +249,7 @@ class CoursebinPage extends React.Component {
       />
     ) : null;
 
-    if (this.props.courses.length === 0) {
-      courseEntries = (
-        <>
-          <Accordion.Title active>Empty</Accordion.Title>
-        </>
-      );
-    }
+    let isEmpty = this.props.courses.length === 0;
 
     return (
       <Container>
@@ -300,9 +294,20 @@ class CoursebinPage extends React.Component {
             <Transition.Group animation="fade down" duration={200}>
               {loadingCourseMessage}
             </Transition.Group>
-            <Accordion styled fluid exclusive={false}>
-              {courseEntries}
-            </Accordion>
+            {isEmpty && (
+              <Header icon textAlign="center">
+                <Icon name="ellipsis horizontal" />
+                Your Coursebin is Empty
+                <Header.Subheader>
+                  Add some courses to make schedules.
+                </Header.Subheader>
+              </Header>
+            )}
+            {!isEmpty && (
+              <Accordion styled fluid exclusive={false}>
+                {courseEntries}
+              </Accordion>
+            )}
           </Segment>
         </Segment.Group>
       </Container>

@@ -5,11 +5,11 @@ import {
   Container,
   Card,
   Image,
-  Button,
   Responsive
 } from "semantic-ui-react";
 import { Helmet } from "react-helmet";
 import { formatTitle } from "../util";
+import RedirectButton from "./RedirectButton";
 
 const LandingPage = () => {
   return (
@@ -35,12 +35,28 @@ const LandingPage = () => {
         >
           Make schedules the easy way.
         </Header>
-        <Button content="Get Started" size="huge" basic inverted />
-        <Button content="Open Scheduler" size="huge" basic inverted />
+        <RedirectButton
+          redirect={{ to: "/guide/" }}
+          button={{
+            content: "Getting Started",
+            size: "huge",
+            basic: true,
+            inverted: true
+          }}
+        />
+        <RedirectButton
+          redirect={{ to: "/app/" }}
+          button={{
+            content: "Open Scheduler",
+            size: "huge",
+            basic: true,
+            inverted: true
+          }}
+        />
       </Segment>
       <Container style={{ padding: "3em", paddingBottom: "9em" }}>
         <Card.Group itemsPerRow="3" stackable>
-          <Card href="#">
+          <Card href="/guide/">
             <Image
               src="https://source.unsplash.com/random/600x400/?clock"
               wrapped
@@ -59,7 +75,7 @@ const LandingPage = () => {
               </Card.Description>
             </Card.Content>
           </Card>
-          <Card href="#">
+          <Card href="/faq/">
             <Image
               src="https://source.unsplash.com/random/600x400/?schedule"
               wrapped
@@ -78,21 +94,17 @@ const LandingPage = () => {
               </Card.Description>
             </Card.Content>
           </Card>
-          <Card href="#">
+          <Card href="/schedule/random/">
             <Image
               src="https://source.unsplash.com/random/600x400/?time"
               wrapped
               ui={false}
             />
             <Card.Content>
-              <Card.Header>Change Log</Card.Header>
-              <Card.Meta>bla bla bla</Card.Meta>
+              <Card.Header>Feeling Lucky</Card.Header>
+              <Card.Meta>go to a random schedule</Card.Meta>
               <Card.Description>
-                See how Trojan Scheduler has changed. Dictum varius duis at
-                consectetur lorem. Augue lacus viverra vitae congue eu consequat
-                ac. Arcu bibendum at varius vel pharetra vel. Vivamus arcu felis
-                bibendum ut tristique. Eleifend quam adipiscing vitae proin
-                sagittis nisl rhoncus.
+                Check out a random schedule made by other students!
               </Card.Description>
             </Card.Content>
           </Card>

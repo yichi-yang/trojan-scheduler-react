@@ -132,3 +132,8 @@
     rgba(27, 28, 29, 1) 89%
   );
 }
+
+.ui.segment.larger-text p {
+  font-size: 1.1em;
+  line-height: 1.5em;
+}
