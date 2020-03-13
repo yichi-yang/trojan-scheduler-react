@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Container,
   Form,
   Segment,
   Header,
@@ -85,7 +84,7 @@ class PreferencesWidget extends React.Component {
   render() {
     let valid_slot = this.state.reserved_from <= this.state.reserved_to;
     return (
-      <Container>
+      <>
         <Helmet>
           <title>{formatTitle("Preferences")}</title>
         </Helmet>
@@ -275,7 +274,7 @@ class PreferencesWidget extends React.Component {
             </Grid>
           </Segment>
         </Segment.Group>
-      </Container>
+      </>
     );
   }
 }

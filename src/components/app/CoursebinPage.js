@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Container,
   Accordion,
   Segment,
   Header,
@@ -252,7 +251,7 @@ class CoursebinPage extends React.Component {
     let isEmpty = this.props.courses.length === 0;
 
     return (
-      <Container>
+      <>
         <Helmet>
           <title>{formatTitle("Coursebin")}</title>
         </Helmet>
@@ -310,7 +309,7 @@ class CoursebinPage extends React.Component {
             )}
           </Segment>
         </Segment.Group>
-      </Container>
+      </>
     );
   }
 }

@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Container,
   Form,
   Segment,
   Message,
@@ -223,7 +222,7 @@ class ResultsWidget extends React.Component {
       );
     }
     return (
-      <Container>
+      <>
         <Helmet>
           <title>{formatTitle("Results")}</title>
         </Helmet>
@@ -253,7 +252,7 @@ class ResultsWidget extends React.Component {
           </Segment>
           {content}
         </Segment.Group>
-      </Container>
+      </>
     );
   }
 }
