@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Popup, Button } from "semantic-ui-react";
-import { loadSetting, editSetting } from "../../actions";
+import { loadSetting, editSetting, loadCoursebin } from "../../actions";
 import { connect } from "react-redux";
 import { termOptions } from "../../settings";
 
@@ -19,6 +19,13 @@ class AddCourseForm extends React.Component {
       this.props.setting.course !== this.state.course
     ) {
       this.setState({ course: this.props.setting.course });
+    }
+  };
+
+  handleTermChange = (e, { value }) => {
+    if (value !== this.props.setting.term) {
+      this.props.editSetting({ name: "term", value });
+      this.props.loadCoursebin([]);
     }
   };
 
@@ -47,9 +54,7 @@ class AddCourseForm extends React.Component {
           <Form.Select
             value={term}
             options={termOptions}
-            onChange={(e, { value }) =>
-              this.props.editSetting({ name: "term", value })
-            }
+            onChange={this.handleTermChange}
             width={6}
             selection
             style={{ width: "100%" }}
@@ -111,6 +116,7 @@ export default connect(
   }),
   {
     loadSetting,
-    editSetting
+    editSetting,
+    loadCoursebin
   }
 )(AddCourseForm);

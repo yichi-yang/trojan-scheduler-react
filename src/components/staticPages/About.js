@@ -60,8 +60,8 @@ const About = () => {
           (bug reports, feature requests, etc.)
         </p>
         <p>
-          Email: <a href="mailto:yichiyan@usc.edu">yichiyan@usc.edu</a>
-          (things not related to the scheduler app)
+          Email: <a href="mailto:yichiyan@usc.edu">yichiyan@usc.edu</a> (things
+          not related to the scheduler app)
         </p>
         <p>
           GitHub repo:{" "}
