@@ -29,6 +29,7 @@ import {
 import { toast } from "react-semantic-toasts";
 import { withRouter } from "react-router-dom";
 import moment from "moment";
+import { Link } from "react-router-dom";
 
 const errorFormatter = errorFormatterCreator(
   matchStatusCode(
@@ -259,10 +260,10 @@ class LoginButton extends React.Component {
             <Dropdown.Item disabled>
               Signed in as <strong>{display_name}</strong>
             </Dropdown.Item>
-            <Dropdown.Item onClick={() => this.props.history.push("/account/")}>
+            <Dropdown.Item as={Link} to="/account/">
               My Profile
             </Dropdown.Item>
-            <Dropdown.Item onClick={(this, this.handleSignOut)}>
+            <Dropdown.Item onClick={this.handleSignOut}>
               Sign Out
             </Dropdown.Item>
           </Dropdown.Menu>

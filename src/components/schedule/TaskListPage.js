@@ -37,7 +37,6 @@ class TaskListPage extends React.Component {
   }
 
   loadTaskData = () => {
-    console.log("load task list");
     axios
       .get(`/api/tasks/?page=${this.state.page}`, {
         cancelToken: this.cancelSource.token

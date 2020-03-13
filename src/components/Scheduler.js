@@ -32,14 +32,45 @@ import Guide from "./staticPages/Guide";
 const PageContent = () => (
   <>
     <Menu fixed="top" inverted>
-      <Container>
-        <Responsive as={React.Fragment} minWidth={700}>
-          <Menu.Item as="a" header>
-            Trojan Scheduler
-          </Menu.Item>
-          <Menu.Item as={NavLink} to="/" exact>
+      <Responsive
+        as={Dropdown}
+        maxWidth={719}
+        item
+        icon="content"
+        className="menu-more"
+        value={null}
+      >
+        <Dropdown.Menu className="large-dropdown">
+          <Dropdown.Item as={NavLink} to="/" exact>
             Home
+          </Dropdown.Item>
+          <Responsive as={React.Fragment} maxWidth={499}>
+            <Dropdown.Item as={NavLink} to="/app/">
+              App
+            </Dropdown.Item>
+            <Dropdown.Item as={NavLink} to="/task/">
+              Tasks
+            </Dropdown.Item>
+            <Dropdown.Item as={NavLink} to="/schedule/">
+              Schedules
+            </Dropdown.Item>
+          </Responsive>
+          <Menu.Item as={NavLink} to="/guide/" exact>
+            Guide
           </Menu.Item>
+          <Dropdown.Item as={NavLink} to="/about/" exact>
+            About
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Responsive>
+
+      <Container>
+        <Responsive as={React.Fragment} minWidth={500}>
+          <Responsive as={React.Fragment} minWidth={720}>
+            <Menu.Item as={Link} header to="/">
+              Trojan Scheduler
+            </Menu.Item>
+          </Responsive>
           <Menu.Item as={NavLink} to="/app/">
             App
           </Menu.Item>
@@ -49,36 +80,14 @@ const PageContent = () => (
           <Menu.Item as={NavLink} to="/schedule/">
             Schedules
           </Menu.Item>
-          <Menu.Item as={NavLink} to="/about/">
-            About
-          </Menu.Item>
-        </Responsive>
-
-        <Responsive
-          as={Dropdown}
-          maxWidth={699}
-          item
-          simple
-          icon="content"
-          className="menu-more"
-        >
-          <Dropdown.Menu>
-            <Dropdown.Item as={NavLink} to="/" exact>
-              Home
-            </Dropdown.Item>
-            <Dropdown.Item as={NavLink} to="/app/" exact>
-              App
-            </Dropdown.Item>{" "}
-            <Dropdown.Item as={NavLink} to="/task/" exact>
-              Tasks
-            </Dropdown.Item>{" "}
-            <Dropdown.Item as={NavLink} to="/schedule/" exact>
-              Schedules
-            </Dropdown.Item>
-            <Dropdown.Item as={NavLink} to="/about/" exact>
+          <Responsive as={React.Fragment} minWidth={720}>
+            <Menu.Item as={NavLink} to="/guide/" exact>
+              Guide
+            </Menu.Item>
+            <Menu.Item as={NavLink} to="/about/" exact>
               About
-            </Dropdown.Item>
-          </Dropdown.Menu>
+            </Menu.Item>
+          </Responsive>
         </Responsive>
 
         <Menu.Menu position="right">
