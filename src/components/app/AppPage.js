@@ -1,5 +1,5 @@
 import React from "react";
-import { Step } from "semantic-ui-react";
+import { Step, Container } from "semantic-ui-react";
 import CoursebinPage from "./CoursebinPage";
 import { Route, Switch, Redirect } from "react-router-dom";
 import StepNav from "./StepNav";
@@ -21,7 +21,7 @@ class AppPage extends React.Component {
     let { path, url } = this.props.match;
 
     return (
-      <>
+      <Container className="main-content">
         <Step.Group widths={3}>
           <StepNav
             path={join(url, "coursebin/")}
@@ -61,7 +61,7 @@ class AppPage extends React.Component {
             <Redirect to={join(url, "coursebin/")} push={false} />
           </Route>
         </Switch>
-      </>
+      </Container>
     );
   }
 }

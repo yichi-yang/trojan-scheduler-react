@@ -14,7 +14,10 @@ class AddCourseForm extends React.Component {
   }
 
   componentDidUpdate = () => {
-    if (!this.state.editing && this.props.setting.course !== this.state.course) {
+    if (
+      !this.state.editing &&
+      this.props.setting.course !== this.state.course
+    ) {
       this.setState({ course: this.props.setting.course });
     }
   };
@@ -56,7 +59,7 @@ class AddCourseForm extends React.Component {
             position="top center"
             trigger={
               <Form.Input
-                placeholder="Course"
+                placeholder="Course (e.g. csci-356)"
                 value={course}
                 onChange={(e, { value }) =>
                   this.setState({ course: value, editing: true })
@@ -90,7 +93,7 @@ class AddCourseForm extends React.Component {
             ?
           </Popup>
           <Form.Button
-            content="Submit"
+            content="Add"
             type="submit"
             width={4}
             fluid

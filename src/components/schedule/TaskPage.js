@@ -5,7 +5,8 @@ import {
   Accordion,
   Message,
   Icon,
-  Header
+  Header,
+  Container
 } from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "../RedirectButton";
@@ -240,7 +241,7 @@ class TaskPage extends React.Component {
     }
 
     return (
-      <>
+      <Container className="main-content">
         <Helmet>
           <title>{formatTitle(taskName)}</title>
         </Helmet>
@@ -250,7 +251,7 @@ class TaskPage extends React.Component {
           {message}
           {content}
         </Segment>
-      </>
+      </Container>
     );
   }
 }

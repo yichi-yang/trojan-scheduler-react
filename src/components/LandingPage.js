@@ -36,21 +36,23 @@ const LandingPage = () => {
           Make schedules the easy way.
         </Header>
         <RedirectButton
-          redirect={{ to: "/guide/" }}
+          redirect={{ to: "/guide/", push: true }}
           button={{
             content: "Getting Started",
             size: "huge",
             basic: true,
-            inverted: true
+            inverted: true,
+            style: { marginBottom: 8 }
           }}
         />
         <RedirectButton
-          redirect={{ to: "/app/" }}
+          redirect={{ to: "/app/", push: true }}
           button={{
             content: "Open Scheduler",
             size: "huge",
             basic: true,
-            inverted: true
+            inverted: true,
+            style: { marginBottom: 8 }
           }}
         />
       </Segment>

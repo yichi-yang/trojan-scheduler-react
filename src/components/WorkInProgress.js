@@ -1,11 +1,11 @@
 import React from "react";
-import { Header, Icon, Grid } from "semantic-ui-react";
+import { Header, Icon, Grid, Container } from "semantic-ui-react";
 import { Helmet } from "react-helmet";
 import { formatTitle } from "../util";
 
 const WorkInProgress = () => {
   return (
-    <>
+    <Container className="main-content">
       <Helmet>
         <title>{formatTitle("404")}</title>
       </Helmet>
@@ -20,7 +20,7 @@ const WorkInProgress = () => {
           </Header>
         </Grid.Column>
       </Grid>
-    </>
+    </Container>
   );
 };
 

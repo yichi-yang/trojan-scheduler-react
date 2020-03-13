@@ -1,5 +1,12 @@
 import React from "react";
-import { Segment, Header, Icon, Message, Form } from "semantic-ui-react";
+import {
+  Segment,
+  Header,
+  Icon,
+  Message,
+  Form,
+  Container
+} from "semantic-ui-react";
 import axios from "axios";
 import {
   errorFormatterCreator,
@@ -57,55 +64,57 @@ class PasswordForgetPage extends React.Component {
     let { success, loading, error, email } = this.state;
 
     return (
-      <Segment
-        className="dynamic"
-        padded="very"
-        loading={loading}
-        style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
-      >
-        <Helmet>
-          <title>{formatTitle("Forget Password")}</title>
-        </Helmet>
-        <Header size="large" as="h1" textAlign="center">
-          Forget Password
-          <Header.Subheader>
-            Please enter the email you used to register account with.
-          </Header.Subheader>
-        </Header>
-        {success && (
-          <Header icon textAlign="center">
-            <Icon name="send" />
-            Email Sent
+      <Container className="main-content">
+        <Segment
+          className="dynamic"
+          padded="very"
+          loading={loading}
+          style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
+        >
+          <Helmet>
+            <title>{formatTitle("Forget Password")}</title>
+          </Helmet>
+          <Header size="large" as="h1" textAlign="center">
+            Forget Password
             <Header.Subheader>
-              Follow the instructions in the email to reset your password.
+              Please enter the email you used to register account with.
             </Header.Subheader>
           </Header>
-        )}
-        {error && <Message error>{error}</Message>}
-        {!success && (
-          <Form style={{ marginTop: "1em", marginBottom: "1em" }}>
-            <Form.Input
-              required
-              fluid
-              value={email}
-              label="Email"
-              name="email"
-              onChange={this.handleEmailChange}
-              type="email"
-              icon="mail"
-              iconPosition="left"
-            />
-            <Form.Button
-              type="submit"
-              fluid
-              loading={loading}
-              disabled={loading}
-              onClick={this.requestToken}
-              content="Submit"
-            />
-          </Form>
-        )}
-      </Segment>
+          {success && (
+            <Header icon textAlign="center">
+              <Icon name="send" />
+              Email Sent
+              <Header.Subheader>
+                Follow the instructions in the email to reset your password.
+              </Header.Subheader>
+            </Header>
+          )}
+          {error && <Message error>{error}</Message>}
+          {!success && (
+            <Form style={{ marginTop: "1em", marginBottom: "1em" }}>
+              <Form.Input
+                required
+                fluid
+                value={email}
+                label="Email"
+                name="email"
+                onChange={this.handleEmailChange}
+                type="email"
+                icon="mail"
+                iconPosition="left"
+              />
+              <Form.Button
+                type="submit"
+                fluid
+                loading={loading}
+                disabled={loading}
+                onClick={this.requestToken}
+                content="Submit"
+              />
+            </Form>
+          )}
+        </Segment>
+      </Container>
     );
   }
 }

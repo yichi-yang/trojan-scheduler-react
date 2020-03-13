@@ -251,7 +251,7 @@ class ResultsWidget extends React.Component {
                   width={3}
                   fluid
                 >
-                  send
+                  New Task
                 </Form.Button>
               </Form.Group>
             </Form>

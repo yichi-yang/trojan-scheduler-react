@@ -1,5 +1,11 @@
 import React from "react";
-import { Placeholder, Segment, Message, Header } from "semantic-ui-react";
+import {
+  Placeholder,
+  Segment,
+  Message,
+  Header,
+  Container
+} from "semantic-ui-react";
 import ScheduleWidget from "./ScheduleWidget";
 import RedirectButton from "../RedirectButton";
 import DetailWidget from "./ScheduleDetailWidget";
@@ -153,7 +159,7 @@ class SchedulePage extends React.Component {
     }
 
     return (
-      <>
+      <Container className="main-content">
         <Helmet>
           <title>{formatTitle(scheduleName)}</title>
         </Helmet>
@@ -163,7 +169,7 @@ class SchedulePage extends React.Component {
           {message}
           {content}
         </Segment>
-      </>
+      </Container>
     );
   }
 }

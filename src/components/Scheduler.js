@@ -14,8 +14,20 @@ import SignupButton from "./account/SignupButton";
 
 import { SemanticToastContainer } from "react-semantic-toasts";
 import "react-semantic-toasts/styles/react-semantic-alert.css";
-import OtherPages from "./OtherPages";
 import TokenHandler from "./TokenHandler";
+import AccountPage from "./account/AccountPage";
+import TaskListPage from "./schedule/TaskListPage";
+import SchedulePage from "./schedule/SchedulePage";
+import TaskPage from "./schedule/TaskPage";
+import NotFound from "./NotFound";
+import WorkInProgress from "./WorkInProgress";
+import AppPage from "./app/AppPage";
+import ScheduleListPage from "./schedule/ScheduleListPage";
+import EmailVerificationPage from "./account/EmailVerificationPage";
+import PasswordResetPage from "./account/PasswordResetPage";
+import PasswordForgetPage from "./account/PasswordForgetPage";
+import About from "./staticPages/About";
+import Guide from "./staticPages/Guide";
 
 const PageContent = () => (
   <>
@@ -23,11 +35,6 @@ const PageContent = () => (
       <Container>
         <Responsive as={React.Fragment} minWidth={700}>
           <Menu.Item as="a" header>
-            {/* <Image
-        size="mini"
-        src="/logo.png"
-        style={{ marginRight: "1.5em" }}
-      /> */}
             Trojan Scheduler
           </Menu.Item>
           <Menu.Item as={NavLink} to="/" exact>
@@ -85,12 +92,40 @@ const PageContent = () => (
 
     <Switch>
       <Route path="/" exact component={LandingPage} />=
-      <Route component={OtherPages} />
+      <Route path="/app" component={AppPage} />
+      <Route
+        path="/task/:id"
+        exact
+        render={routeProps => (
+          <TaskPage task_id={routeProps.match.params.id} {...routeProps} />
+        )}
+      />
+      <Route
+        path="/schedule/:id"
+        exact
+        render={routeProps => (
+          <SchedulePage
+            schedule_id={routeProps.match.params.id}
+            {...routeProps}
+          />
+        )}
+      />
+      <Route path="/task/" exact component={TaskListPage} />
+      <Route path="/schedule/" exact component={ScheduleListPage} />
+      <Route path="/account/" exact component={AccountPage} />
+      <Route path="/email/verify/" exact component={EmailVerificationPage} />
+      <Route path="/password/reset/" exact component={PasswordResetPage} />
+      <Route path="/password/forget/" exact component={PasswordForgetPage} />
+      <Route path="/about/" exact component={About} />
+      <Route path="/guide/" exact component={Guide} />
+      <Route path="/faq/" exact component={WorkInProgress} />
+      <Route path="/change-log/" exact component={WorkInProgress} />
+      <Route path="/contact/" exact component={WorkInProgress} />
+      <Route component={NotFound} />
     </Switch>
 
     <Segment inverted vertical className="footer">
       <Container textAlign="center">
-        {/* <Image centered size="mini" src="/logo.png" /> */}
         <List horizontal inverted divided link size="small">
           <List.Item as={Link} to="/">
             Home

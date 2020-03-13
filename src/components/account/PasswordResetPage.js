@@ -1,5 +1,12 @@
 import React from "react";
-import { Segment, Header, Icon, Message, Form } from "semantic-ui-react";
+import {
+  Segment,
+  Header,
+  Icon,
+  Message,
+  Form,
+  Container
+} from "semantic-ui-react";
 import axios from "axios";
 import {
   errorFormatterCreator,
@@ -80,77 +87,81 @@ class PasswordResetPage extends React.Component {
     let invalid_token = error === 401;
 
     return (
-      <Segment
-        className="dynamic"
-        padded="very"
-        loading={loading}
-        style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
-      >
-        <Helmet>
-          <title>{formatTitle("Password Reset")}</title>
-        </Helmet>
-        <Header size="large" as="h1" textAlign="center">
-          Password Reset
-        </Header>
-        {success && (
-          <Header icon textAlign="center">
-            <Icon name="check" />
-            Password Updated
-            <Header.Subheader>Log in to continue.</Header.Subheader>
+      <Container className="main-content">
+        <Segment
+          className="dynamic"
+          padded="very"
+          loading={loading}
+          style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
+        >
+          <Helmet>
+            <title>{formatTitle("Password Reset")}</title>
+          </Helmet>
+          <Header size="large" as="h1" textAlign="center">
+            Password Reset
           </Header>
-        )}
-        {!invalid_token && error && <Message error>{error}</Message>}
-        {invalid_token && (
-          <Header icon textAlign="center">
-            <Icon name="times" />
-            Invalid Token
-            <Header.Subheader>
-              The token is not valid or has expired. Are you sure you copied the
-              entire link?
-            </Header.Subheader>
-          </Header>
-        )}
-        {!success && !token && (
-          <Header icon textAlign="center">
-            <Icon name="expand" />
-            No Token
-            <Header.Subheader>
-              Please use the link in the email to reset password.
-            </Header.Subheader>
-          </Header>
-        )}
-        {!invalid_token && !success && token && (
-          <Form>
-            <Form.Input
-              required
-              fluid
-              value={password}
-              label="Password"
-              name="password"
-              onChange={this.handlePasswordChange}
-              type="password"
-            />
-            <Form.Input
-              required
-              fluid
-              value={password2}
-              label="Confirm password"
-              name="password2"
-              onChange={this.handlePasswordChange}
-              type="password"
-              error={password !== password2 ? "Passwords do not match." : null}
-            />
-            <Form.Button
-              type="submit"
-              fluid
-              loading={loading}
-              disabled={loading}
-              onClick={this.resetPassword}
-              content="Submit"
-            />
-          </Form>
-        )}
-      </Segment>
+          {success && (
+            <Header icon textAlign="center">
+              <Icon name="check" />
+              Password Updated
+              <Header.Subheader>Log in to continue.</Header.Subheader>
+            </Header>
+          )}
+          {!invalid_token && error && <Message error>{error}</Message>}
+          {invalid_token && (
+            <Header icon textAlign="center">
+              <Icon name="times" />
+              Invalid Token
+              <Header.Subheader>
+                The token is not valid or has expired. Are you sure you copied
+                the entire link?
+              </Header.Subheader>
+            </Header>
+          )}
+          {!success && !token && (
+            <Header icon textAlign="center">
+              <Icon name="expand" />
+              No Token
+              <Header.Subheader>
+                Please use the link in the email to reset password.
+              </Header.Subheader>
+            </Header>
+          )}
+          {!invalid_token && !success && token && (
+            <Form>
+              <Form.Input
+                required
+                fluid
+                value={password}
+                label="Password"
+                name="password"
+                onChange={this.handlePasswordChange}
+                type="password"
+              />
+              <Form.Input
+                required
+                fluid
+                value={password2}
+                label="Confirm password"
+                name="password2"
+                onChange={this.handlePasswordChange}
+                type="password"
+                error={
+                  password !== password2 ? "Passwords do not match." : null
+                }
+              />
+              <Form.Button
+                type="submit"
+                fluid
+                loading={loading}
+                disabled={loading}
+                onClick={this.resetPassword}
+                content="Submit"
+              />
+            </Form>
+          )}
+        </Segment>
+      </Container>
     );
   }
 }

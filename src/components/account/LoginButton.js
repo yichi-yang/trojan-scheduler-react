@@ -28,6 +28,7 @@ import {
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import { withRouter } from "react-router-dom";
+import moment from "moment";
 
 const errorFormatter = errorFormatterCreator(
   matchStatusCode(
@@ -119,13 +120,18 @@ class LoginButton extends React.Component {
         this.props.loadSetting(response.data.setting);
       })
       .catch(error => {
-        toast({
-          type: "error",
-          icon: "times",
-          title: `Failed to Load User Information`,
-          list: errorFormatter(error).split("\n"),
-          time: 10000
-        });
+        if (
+          moment().diff(this.mountedAt) >
+          moment.duration(5, "s").asMilliseconds()
+        ) {
+          toast({
+            type: "error",
+            icon: "times",
+            title: `Failed to Load User Information`,
+            list: errorFormatter(error).split("\n"),
+            time: 10000
+          });
+        }
       });
   };
 
@@ -148,6 +154,7 @@ class LoginButton extends React.Component {
   };
 
   componentDidMount() {
+    this.mountedAt = moment();
     if (!this.delayLoadProfile(this.props)) {
       let { tokens } = this.props;
       if (tokens) {

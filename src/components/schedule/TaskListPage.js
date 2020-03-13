@@ -8,7 +8,8 @@ import {
   Label,
   Header,
   Responsive,
-  Icon
+  Icon,
+  Container
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -205,7 +206,7 @@ class TaskListPage extends React.Component {
     }
 
     return (
-      <>
+      <Container className="main-content">
         <Helmet>
           <title>{formatTitle("Tasks")}</title>
         </Helmet>
@@ -220,7 +221,7 @@ class TaskListPage extends React.Component {
           </Segment>
         </Segment.Group>
         {pagination}
-      </>
+      </Container>
     );
   }
 }

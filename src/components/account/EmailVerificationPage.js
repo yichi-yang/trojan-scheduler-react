@@ -1,5 +1,5 @@
 import React from "react";
-import { Segment, Header, Icon } from "semantic-ui-react";
+import { Segment, Header, Icon, Container } from "semantic-ui-react";
 import axios from "axios";
 import {
   errorFormatterCreator,
@@ -72,52 +72,54 @@ class EmailVerificationPage extends React.Component {
   render() {
     let { success, loading, error, token } = this.state;
     return (
-      <Segment
-        className="dynamic"
-        padded="very"
-        loading={loading}
-        style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
-      >
-        <Helmet>
-          <title>{formatTitle("Verify Email")}</title>
-        </Helmet>
-        <Header size="large" as="h1" textAlign="center">
-          Verify Your Email
-        </Header>
-        {success && (
-          <Header icon textAlign="center">
-            <Icon name="check" />
-            Email Verified
-            <Header.Subheader>Log in to continue.</Header.Subheader>
+      <Container className="main-content">
+        <Segment
+          className="dynamic"
+          padded="very"
+          loading={loading}
+          style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}
+        >
+          <Helmet>
+            <title>{formatTitle("Verify Email")}</title>
+          </Helmet>
+          <Header size="large" as="h1" textAlign="center">
+            Verify Your Email
           </Header>
-        )}
-        {error && error === 401 && (
-          <Header icon textAlign="center">
-            <Icon name="times" />
-            Invalid Token
-            <Header.Subheader>
-              The token is not valid or has expired. Are you sure you copied the
-              entire link?
-            </Header.Subheader>
-          </Header>
-        )}
-        {error && error !== 401 && (
-          <Header icon textAlign="center">
-            <Icon name="times" />
-            Failed to Verify
-            <Header.Subheader>{error}</Header.Subheader>
-          </Header>
-        )}
-        {!success && !token && (
-          <Header icon textAlign="center">
-            <Icon name="expand" />
-            No Token
-            <Header.Subheader>
-              Please use the link in the email.
-            </Header.Subheader>
-          </Header>
-        )}
-      </Segment>
+          {success && (
+            <Header icon textAlign="center">
+              <Icon name="check" />
+              Email Verified
+              <Header.Subheader>Log in to continue.</Header.Subheader>
+            </Header>
+          )}
+          {error && error === 401 && (
+            <Header icon textAlign="center">
+              <Icon name="times" />
+              Invalid Token
+              <Header.Subheader>
+                The token is not valid or has expired. Are you sure you copied
+                the entire link?
+              </Header.Subheader>
+            </Header>
+          )}
+          {error && error !== 401 && (
+            <Header icon textAlign="center">
+              <Icon name="times" />
+              Failed to Verify
+              <Header.Subheader>{error}</Header.Subheader>
+            </Header>
+          )}
+          {!success && !token && (
+            <Header icon textAlign="center">
+              <Icon name="expand" />
+              No Token
+              <Header.Subheader>
+                Please use the link in the email.
+              </Header.Subheader>
+            </Header>
+          )}
+        </Segment>
+      </Container>
     );
   }
 }

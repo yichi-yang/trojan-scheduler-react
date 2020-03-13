@@ -10,7 +10,8 @@ import {
   Icon,
   Divider,
   Grid,
-  Responsive
+  Responsive,
+  Container
 } from "semantic-ui-react";
 import { connect } from "react-redux";
 import axios from "axios";
@@ -297,209 +298,219 @@ class AccountPage extends React.Component {
     if (nickname)
       displayNameOptions.push({ key: "nickname", text: nickname, value: "NC" });
     return (
-      <Segment className="dynamic" padded="very">
-        <Helmet>
-          <title>{formatTitle("Account")}</title>
-        </Helmet>
-        <Grid stackable>
-          <Grid.Column width="6">
-            <Header>My Profile</Header>
-            <ProfileCard {...this.props.profile} />
-          </Grid.Column>
-          <Grid.Column width="10">
-            <Header>Account Settings</Header>
+      <Container className="main-content">
+        <Segment className="dynamic" padded="very">
+          <Helmet>
+            <title>{formatTitle("Account")}</title>
+          </Helmet>
+          <Grid stackable>
+            <Grid.Column width="6">
+              <Header>My Profile</Header>
+              <ProfileCard {...this.props.profile} />
+            </Grid.Column>
+            <Grid.Column width="10">
+              <Header>Account Settings</Header>
 
-            <Form loading={this.state.loading}>
-              <Form.Input fluid value={username} label="Username" readOnly />
-              <Form.Button
-                content="Change Password"
-                onClick={this.toggleChangePassword}
-              />
-              {this.state.changePassword && (
-                <>
-                  <Form.Input
-                    required
-                    fluid
-                    value={old_password}
-                    label="Old password"
-                    name="old_password"
-                    onChange={this.handlePasswordChange}
-                    type="password"
-                  />
-                  <Form.Input
-                    required
-                    fluid
-                    value={password}
-                    label="Password"
-                    name="password"
-                    onChange={this.handlePasswordChange}
-                    type="password"
-                  />
-                  <Form.Input
-                    required
-                    fluid
-                    value={password2}
-                    label="Confirm password"
-                    name="password2"
-                    onChange={this.handlePasswordChange}
-                    type="password"
-                    error={
-                      password !== password2 ? "Passwords do not match." : null
-                    }
-                  />
-                </>
-              )}
-              <Form.Field>
-                <label>Email</label>
-                <Input
-                  value={email}
-                  labelPosition="right"
-                  name="email"
-                  onChange={this.handleChange}
-                >
-                  <input />
-                  {email_verified && (
-                    <Label color="green">
-                      <Icon name="check" style={{ margin: "0 0.2em" }} />
-                    </Label>
-                  )}
-                  {!email_verified && email && (
-                    <Label color="red">
-                      <Responsive as="span" minWidth={350}>
-                        not verified
-                      </Responsive>
-                      <Responsive
-                        as={Icon}
-                        maxWidth={349}
-                        name="times"
-                        style={{ margin: "0 0.2em" }}
-                      />
-                    </Label>
-                  )}
-                </Input>
-              </Form.Field>
-
-              <Form.Checkbox
-                label="show my email on my profile page"
-                checked={show_email}
-                onChange={e =>
-                  this.handleChange(e, {
-                    name: "show_email",
-                    value: !show_email
-                  })
-                }
-              />
-
-              <Form.Input
-                fluid
-                value={first_name}
-                label="First name"
-                name="first_name"
-                onChange={this.handleChange}
-              />
-              <Form.Input
-                fluid
-                value={last_name}
-                label="Last name"
-                name="last_name"
-                onChange={this.handleChange}
-              />
-              <Form.Input
-                fluid
-                value={nickname}
-                label="Nickname"
-                name="nickname"
-                onChange={this.handleChange}
-              />
-              <Form.Checkbox
-                label="show my name on my profile page"
-                checked={show_name}
-                onChange={e =>
-                  this.handleChange(e, { name: "show_name", value: !show_name })
-                }
-              />
-              <Form.Select
-                fluid
-                options={displayNameOptions}
-                value={display_name_choice}
-                label="Display Name"
-                name="display_name_choice"
-                onChange={this.handleChange}
-              />
-              <Form.Input
-                fluid
-                value={moment(date_joined).format("LL")}
-                label="Date Joined"
-                name="nickname"
-                readOnly
-              />
-              <Form.Checkbox
-                label="show date joined on my profile page"
-                checked={show_date_joined}
-                onChange={e =>
-                  this.handleChange(e, {
-                    name: "show_date_joined",
-                    value: !show_date_joined
-                  })
-                }
-              />
-              <Item.Group>
-                <Item>
-                  <Item.Image
-                    size="tiny"
-                    src={avatar}
-                    rounded
-                    className="schedule-user-avatar"
-                  />
-                  <Item.Content verticalAlign="middle">
-                    <AvatarSelect
-                      default={avatar}
-                      buttonProps={{ content: "Change Avatar", type: "button" }}
-                      onSubmit={avatar =>
-                        this.handleChange(null, {
-                          name: "avatar",
-                          value: avatar
-                        })
+              <Form loading={this.state.loading}>
+                <Form.Input fluid value={username} label="Username" readOnly />
+                <Form.Button
+                  content="Change Password"
+                  onClick={this.toggleChangePassword}
+                />
+                {this.state.changePassword && (
+                  <>
+                    <Form.Input
+                      required
+                      fluid
+                      value={old_password}
+                      label="Old password"
+                      name="old_password"
+                      onChange={this.handlePasswordChange}
+                      type="password"
+                    />
+                    <Form.Input
+                      required
+                      fluid
+                      value={password}
+                      label="Password"
+                      name="password"
+                      onChange={this.handlePasswordChange}
+                      type="password"
+                    />
+                    <Form.Input
+                      required
+                      fluid
+                      value={password2}
+                      label="Confirm password"
+                      name="password2"
+                      onChange={this.handlePasswordChange}
+                      type="password"
+                      error={
+                        password !== password2
+                          ? "Passwords do not match."
+                          : null
                       }
                     />
-                  </Item.Content>
-                </Item>
-              </Item.Group>
-              <Form.Button
-                content="Update"
-                type="submit"
-                color="green"
-                fluid
-                onClick={this.saveUserProfile}
-              />
-              {!email_verified && (
+                  </>
+                )}
+                <Form.Field>
+                  <label>Email</label>
+                  <Input
+                    value={email}
+                    labelPosition="right"
+                    name="email"
+                    onChange={this.handleChange}
+                  >
+                    <input />
+                    {email_verified && (
+                      <Label color="green">
+                        <Icon name="check" style={{ margin: "0 0.2em" }} />
+                      </Label>
+                    )}
+                    {!email_verified && email && (
+                      <Label color="red">
+                        <Responsive as="span" minWidth={350}>
+                          not verified
+                        </Responsive>
+                        <Responsive
+                          as={Icon}
+                          maxWidth={349}
+                          name="times"
+                          style={{ margin: "0 0.2em" }}
+                        />
+                      </Label>
+                    )}
+                  </Input>
+                </Form.Field>
+
+                <Form.Checkbox
+                  label="show my email on my profile page"
+                  checked={show_email}
+                  onChange={e =>
+                    this.handleChange(e, {
+                      name: "show_email",
+                      value: !show_email
+                    })
+                  }
+                />
+
+                <Form.Input
+                  fluid
+                  value={first_name}
+                  label="First name"
+                  name="first_name"
+                  onChange={this.handleChange}
+                />
+                <Form.Input
+                  fluid
+                  value={last_name}
+                  label="Last name"
+                  name="last_name"
+                  onChange={this.handleChange}
+                />
+                <Form.Input
+                  fluid
+                  value={nickname}
+                  label="Nickname"
+                  name="nickname"
+                  onChange={this.handleChange}
+                />
+                <Form.Checkbox
+                  label="show my name on my profile page"
+                  checked={show_name}
+                  onChange={e =>
+                    this.handleChange(e, {
+                      name: "show_name",
+                      value: !show_name
+                    })
+                  }
+                />
+                <Form.Select
+                  fluid
+                  options={displayNameOptions}
+                  value={display_name_choice}
+                  label="Display Name"
+                  name="display_name_choice"
+                  onChange={this.handleChange}
+                />
+                <Form.Input
+                  fluid
+                  value={moment(date_joined).format("LL")}
+                  label="Date Joined"
+                  name="nickname"
+                  readOnly
+                />
+                <Form.Checkbox
+                  label="show date joined on my profile page"
+                  checked={show_date_joined}
+                  onChange={e =>
+                    this.handleChange(e, {
+                      name: "show_date_joined",
+                      value: !show_date_joined
+                    })
+                  }
+                />
+                <Item.Group>
+                  <Item>
+                    <Item.Image
+                      size="tiny"
+                      src={avatar}
+                      rounded
+                      className="schedule-user-avatar"
+                    />
+                    <Item.Content verticalAlign="middle">
+                      <AvatarSelect
+                        default={avatar}
+                        buttonProps={{
+                          content: "Change Avatar",
+                          type: "button"
+                        }}
+                        onSubmit={avatar =>
+                          this.handleChange(null, {
+                            name: "avatar",
+                            value: avatar
+                          })
+                        }
+                      />
+                    </Item.Content>
+                  </Item>
+                </Item.Group>
+                <Form.Button
+                  content="Update"
+                  type="submit"
+                  color="green"
+                  fluid
+                  onClick={this.saveUserProfile}
+                />
+                {!email_verified && (
+                  <Form.Button
+                    fluid
+                    color="blue"
+                    content="Verify Email"
+                    loading={this.state.sendEmailLoading}
+                    disabled={this.state.sendEmailLoading}
+                    onClick={this.sendEmailVerification}
+                  />
+                )}
                 <Form.Button
                   fluid
-                  color="blue"
-                  content="Verify Email"
-                  loading={this.state.sendEmailLoading}
-                  disabled={this.state.sendEmailLoading}
-                  onClick={this.sendEmailVerification}
+                  color="black"
+                  content="Sign out From All Devices"
+                  onClick={this.signOutFromAllDevices}
                 />
-              )}
-              <Form.Button
-                fluid
-                color="black"
-                content="Sign out From All Devices"
-                onClick={this.signOutFromAllDevices}
-              />
-              <Divider horizontal section>
-                Danger Zone
-              </Divider>
-              <Form.Button
-                fluid
-                color="red"
-                content="Delete Account (does not work)"
-              />
-            </Form>
-          </Grid.Column>
-        </Grid>
-      </Segment>
+                <Divider horizontal section>
+                  Danger Zone
+                </Divider>
+                <Form.Button
+                  fluid
+                  color="red"
+                  content="Delete Account (does not work)"
+                />
+              </Form>
+            </Grid.Column>
+          </Grid>
+        </Segment>
+      </Container>
     );
   }
 }

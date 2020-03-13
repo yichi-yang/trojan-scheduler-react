@@ -135,5 +135,9 @@
 
 .ui.segment.larger-text p {
   font-size: 1.1em;
-  line-height: 1.5em;
+  line-height: 1.7em;
 }
+
+/* #root {
+  background-color: rgb(245, 245, 245);
+} */

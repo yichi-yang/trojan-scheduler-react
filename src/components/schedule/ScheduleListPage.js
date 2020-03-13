@@ -9,7 +9,8 @@ import {
   Popup,
   Header,
   Button,
-  Responsive
+  Responsive,
+  Container
 } from "semantic-ui-react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -257,7 +258,7 @@ class ScheduleListPage extends React.Component {
     let { savedOnly, publicOnly } = this.state;
 
     return (
-      <>
+      <Container className="main-content">
         <Helmet>
           <title>{formatTitle("Schedules")}</title>
         </Helmet>
@@ -296,7 +297,7 @@ class ScheduleListPage extends React.Component {
           </Segment>
         </Segment.Group>
         {pagination}
-      </>
+      </Container>
     );
   }
 }
