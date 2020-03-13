@@ -1,6 +1,9 @@
 import React from "react";
 import { Segment, Header, Image, Container } from "semantic-ui-react";
 import coursebinPNG from "./img/coursebin.png";
+import csci356PNG from "./img/csci356.png";
+import resultPagePNG from "./img/result_page.png";
+import schedulesPNG from "./img/schedules.png";
 
 const Guide = () => {
   return (
@@ -34,37 +37,27 @@ const Guide = () => {
           dropdown menu under "Add Course". Then put the name of the course
           (usually in the form of abcd-123) in the "Course" input box and click
           "Add". Now you should see the course you just added appear in your
-          coursebin. You can click the name of the course to expand it and see
-          its details. There are also a few buttons and checkboxes you can play
-          with, and we will talk about that in the next part. Repeat the steps
-          above to add a few more courses. After adding all courses you want to
-          make schedule with, navigate to the results page of the app. It should
-          show a list of courses you have selected. Click the "New Task" button
-          to generate schedules. Optionally, name the task using the input box
-          next to the button. After the task is completed, you can go and check
-          out the shiny schedules we made for you.
+          coursebin.
         </p>
+        <Image src={csci356PNG} size="big" />
+        <p>
+          You can click the name of the course to expand it and see its details.
+          There are also a few buttons and checkboxes you can play with, and we
+          will talk about that in the next part. Repeat the steps above to add a
+          few more courses. After adding all courses you want to make schedule
+          with, navigate to the results page of the app. It should show a list
+          of courses you have selected.
+        </p>
+        <Image src={resultPagePNG} size="big" />
+        <p>
+          Click the "New Task" button to generate schedules. Optionally, name
+          the task using the input box next to the button. After the task is
+          completed, you can go and check out the shiny schedules by clicking
+          the "Results" button.
+        </p>
+        <Image src={schedulesPNG} size="big" />
         <Header as="h2">Advanced Topics</Header>
-        <p>
-          Email:{" "}
-          <a href="mailto:scheduler@yichiyang.com">scheduler@yichiyang.com</a>{" "}
-          (bug reports, feature requests, and anything related to the app
-          itself)
-        </p>
-        <p>
-          Email: <a href="mailto:yichiyan@usc.edu">yichiyan@usc.edu</a>
-          (things not related to the scheduler app)
-        </p>
-        <p>
-          GitHub repo:{" "}
-          <a href="https://github.com/yichi-yang/trojan-scheduler-django">
-            trojan-scheduler-django
-          </a>
-        </p>
-        <p>
-          Other fun projects:{" "}
-          <a href="https://www.yichiyang.com/">yichiyang.com</a>
-        </p>
+        <p>Work in progress...</p>
       </Segment>
     </Container>
   );

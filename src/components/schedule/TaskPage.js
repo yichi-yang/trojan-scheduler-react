@@ -110,7 +110,7 @@ class TaskPage extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (Boolean(prevProps.tokens) !== Boolean(this.props.tokens)) {
+    if (Boolean(prevProps.profile) !== Boolean(this.props.profile)) {
       this.setState({ taskData: null, error: null });
       this.loadTaskData();
     }
@@ -171,6 +171,10 @@ class TaskPage extends React.Component {
     let content = null;
     let details = null;
     if (taskData) {
+      let canEdit =
+        this.props.profile &&
+        this.props.profile.id &&
+        this.props.profile.id === taskData.user;
       if (taskData.schedules.length !== 0) {
         content = (
           <>
@@ -217,7 +221,7 @@ class TaskPage extends React.Component {
         <TaskDetailWidget
           task={taskData}
           user={taskUser}
-          canEdit={true}
+          canEdit={canEdit}
           onUpdate={data => this.setState({ taskData: data })}
           onDelete={() =>
             this.setState({
@@ -257,5 +261,5 @@ class TaskPage extends React.Component {
 }
 
 export default connect(state => ({
-  tokens: state.user.tokens
+  profile: state.user.profile
 }))(TaskPage);

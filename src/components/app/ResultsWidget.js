@@ -33,7 +33,7 @@ const errorFormatter = errorFormatterCreator(
 class ResultsWidget extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { error: null };
+    this.state = { error: null, taskName: "" };
     this.cancelSource = axios.CancelToken.source();
   }
 

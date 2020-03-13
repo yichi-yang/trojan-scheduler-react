@@ -32,7 +32,6 @@ class AppPage extends React.Component {
             path={join(url, "preferences/")}
             icon="setting"
             title="Preferences"
-            content="..."
           ></StepNav>
           <StepNav
             path={join(url, "results/")}
