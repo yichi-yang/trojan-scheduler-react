@@ -47,7 +47,6 @@ class SchedulePage extends React.Component {
 
   loadScheduleData = () => {
     if (this.props.schedule_id) {
-      console.log("load");
       axios
         .get(`/api/schedules/${this.props.schedule_id}/`, {
           cancelToken: this.cancelSource.token

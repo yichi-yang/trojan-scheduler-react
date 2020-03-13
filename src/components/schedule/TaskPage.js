@@ -68,7 +68,6 @@ class TaskPage extends React.Component {
   }
 
   loadTaskData = () => {
-    console.log("load task");
     if (this.props.task_id) {
       axios
         .get(`/api/tasks/${this.props.task_id}/`, {
@@ -117,7 +116,6 @@ class TaskPage extends React.Component {
   }
 
   setCache = course => {
-    console.log(`cache ${course.name}`);
     this.setState(state => {
       let exists = false;
       let newCache = state.cache.map(prev => {

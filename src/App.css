@@ -124,6 +124,8 @@
   }
 }
 
+/* lading page styling */
+
 .ui.inverted.segment.landing-page-segment {
   background: linear-gradient(
     0deg,
@@ -133,11 +135,19 @@
   );
 }
 
+/* text page text formatting */
+
 .ui.segment.larger-text p {
   font-size: 1.1em;
   line-height: 1.7em;
 }
 
-/* #root {
-  background-color: rgb(245, 245, 245);
-} */
+/* larger dropdown menu */
+
+.ui.menu .ui.dropdown.item .menu.large-dropdown {
+  border-radius: 0 0.28571429rem 0.28571429rem 0.28571429rem;
+}
+
+.ui.menu .ui.dropdown.item .menu.large-dropdown .item {
+  line-height: 3em;
+}
