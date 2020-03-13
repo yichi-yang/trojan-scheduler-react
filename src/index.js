@@ -11,7 +11,9 @@ import setupJwtRefresh from "./axiosJwtRefresh";
 
 const store = configureStore({
   reducer: allReducers,
-  enhancers: [persistState("user")]
+  enhancers: [
+    persistState(["user", "course", "preference", "setting", "task_result"])
+  ]
 });
 
 setupJwtRefresh(store);

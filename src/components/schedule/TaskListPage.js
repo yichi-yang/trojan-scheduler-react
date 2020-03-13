@@ -37,6 +37,7 @@ class TaskListPage extends React.Component {
   }
 
   loadTaskData = () => {
+    this.setState({ loading: true });
     axios
       .get(`/api/tasks/?page=${this.state.page}`, {
         cancelToken: this.cancelSource.token
@@ -194,12 +195,26 @@ class TaskListPage extends React.Component {
     if (loading) {
       placeholder = (
         <Placeholder>
-          <Placeholder.Header />
-          <Placeholder.Line />
-          <Placeholder.Line />
-          <Placeholder.Header />
-          <Placeholder.Line />
-          <Placeholder.Line />
+          <Placeholder.Header>
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Paragraph>
+          <Placeholder.Header>
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Paragraph>
         </Placeholder>
       );
     }

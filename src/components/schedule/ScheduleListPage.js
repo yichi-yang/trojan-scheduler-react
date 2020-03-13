@@ -34,7 +34,7 @@ class ScheduleListPage extends React.Component {
     super(props);
     let page = 1,
       savedOnly = props.setting.savedOnly,
-      publicOnly = props.setting.publicOnly; 
+      publicOnly = props.setting.publicOnly;
     if (this.props.location && this.props.location.search) {
       let params = new URLSearchParams(this.props.location.search);
       if (params.has("page")) page = Number(params.get("page"));
@@ -58,6 +58,7 @@ class ScheduleListPage extends React.Component {
     query.set("page", page);
     if (savedOnly) query.set("saved", savedOnly);
     if (publicOnly) query.set("public", publicOnly);
+    this.setState({ loading: true });
     axios
       .get(`/api/schedules/?${query.toString()}`, {
         cancelToken: this.cancelSource.token
@@ -244,12 +245,26 @@ class ScheduleListPage extends React.Component {
     if (loading) {
       placeholder = (
         <Placeholder>
-          <Placeholder.Header />
-          <Placeholder.Line />
-          <Placeholder.Line />
-          <Placeholder.Header />
-          <Placeholder.Line />
-          <Placeholder.Line />
+          <Placeholder.Header>
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Paragraph>
+          <Placeholder.Header>
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+            <Placeholder.Line />
+          </Placeholder.Paragraph>
         </Placeholder>
       );
     }

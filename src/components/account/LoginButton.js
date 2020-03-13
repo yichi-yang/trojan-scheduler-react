@@ -9,14 +9,7 @@ import {
   Dropdown
 } from "semantic-ui-react";
 import { connect } from "react-redux";
-import {
-  setUserTokens,
-  setUserProfile,
-  clearUserState,
-  loadCoursebin,
-  loadPreferences,
-  loadSetting
-} from "../../actions";
+import { setUserTokens, setUserProfile, clearUserState } from "../../actions";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import {
@@ -113,12 +106,6 @@ class LoginButton extends React.Component {
       .get(`/api/users/${user_id}/`, { cancelToken: this.cancelSource.token })
       .then(response => {
         this.props.setUserProfile(response.data);
-        return axios.get(`/api/task-data/${response.data.saved_task_data}/`);
-      })
-      .then(response => {
-        this.props.loadCoursebin(response.data.coursebin);
-        this.props.loadPreferences(response.data.preference);
-        this.props.loadSetting(response.data.setting);
       })
       .catch(error => {
         if (
@@ -263,9 +250,7 @@ class LoginButton extends React.Component {
             <Dropdown.Item as={Link} to="/account/">
               My Profile
             </Dropdown.Item>
-            <Dropdown.Item onClick={this.handleSignOut}>
-              Sign Out
-            </Dropdown.Item>
+            <Dropdown.Item onClick={this.handleSignOut}>Sign Out</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       );
@@ -282,9 +267,6 @@ export default connect(
   {
     setUserTokens,
     clearUserState,
-    setUserProfile,
-    loadCoursebin,
-    loadPreferences,
-    loadSetting
+    setUserProfile
   }
 )(withRouter(LoginButton));

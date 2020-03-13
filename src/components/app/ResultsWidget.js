@@ -3,12 +3,11 @@ import {
   Container,
   Form,
   Segment,
-  Button,
   Message,
-  List
+  List,
+  Header
 } from "semantic-ui-react";
 import { connect } from "react-redux";
-import { Redirect } from "react-router-dom";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { saveTaskResult } from "../../actions";
 import axios from "axios";
@@ -17,10 +16,12 @@ import {
   responseDataFormatter,
   statusCodeFormatter,
   matchStatusCode,
-  formatTitle
+  formatTitle,
+  getTaskName
 } from "../../util";
 import { toast } from "react-semantic-toasts";
 import { Helmet } from "react-helmet";
+import RedirectButton from "../RedirectButton";
 
 const errorFormatter = errorFormatterCreator(
   matchStatusCode("Your session has expired. Please log in to continue.", [
@@ -176,25 +177,18 @@ class ResultsWidget extends React.Component {
           break;
       }
 
-      if (this.state.redirect) {
+      if (result.status === "DN" || result.status === "WN") {
         button = (
-          <Redirect
-            to={{ pathname: this.state.redirect, state: { taskData: result } }}
+          <RedirectButton
+            button={{ type: "submit", content: "Go to Result Page" }}
+            redirect={{ to: `/task/${result.id}/`, push: true }}
           />
-        );
-      } else if (result.status === "DN" || result.status === "WN") {
-        button = (
-          <Button
-            onClick={() => this.setState({ redirect: `/task/${result.id}/` })}
-            type="submit"
-          >
-            Results
-          </Button>
         );
       }
 
       content = (
         <Segment>
+          <Header>{getTaskName(result)}</Header>
           {message}
           {button}
         </Segment>
@@ -235,6 +229,7 @@ class ResultsWidget extends React.Component {
         </Helmet>
         <Segment.Group>
           <Segment>
+            <Header>Make New Schedules</Header>
             {coursebinSummary}
             <Form>
               <Form.Group>
